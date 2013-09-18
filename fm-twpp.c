@@ -125,6 +125,16 @@ int getBlockSize(unsigned char block, const V * varr){
 	for(i = 1; varr[i].block == block && i <= sumsize ; i++){}
 	return i ;
 }
+float getBlockRatio(unsigned char block){
+	switch(block){
+	case 'A': return 0.5 ; 
+	case 'B': return 0.5 ;
+	default : break ;
+	}
+}
 int  selectCell(const V * varr){
 	int i = 1;
+	int baseCellIndex = getCellWithMaxGain(varr) ;
+	if(	getBlockSize(varr[baseCellIndex].block) - 1 >= getBlockRatio(varr[baseCellIndex].block) * sumsize){
+	}
 }
