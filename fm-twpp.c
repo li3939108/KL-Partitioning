@@ -7,12 +7,18 @@
 struct vertex {
 	char block ;
 	unsigned char locked  ;
+	unsigned char selected ;
+	unsigned char discarded ;
+	int gain;
 	int ldc;
 	int* ld;
 };
 typedef struct vertex V;
 
 V vertexarr[NODE_LIMIT];
+int maxGain[NODE_LIMIT];
+float ratio ;
+int sumsize ;
 
 int main(int argc, char ** argv){
 	memset(vertexarr, 0, sizeof(V) * NODE_LIMIT);
@@ -68,10 +74,13 @@ int main(int argc, char ** argv){
 				break;
 			}}}}}}
 		}
+		sumsize = index ;
 	}else{
 		fprintf(stderr, "too few arguments\n");
 		exit(EXIT_FAILURE);
 	}
+	ratio = 0.5 ;
+
 	int i = 0;
 	for( i = 1; vertexarr[i].block != 0 && !vertexarr[i].locked ; i++){
 		int j = 0;
@@ -85,21 +94,32 @@ int main(int argc, char ** argv){
 	computeCellGain( vertexarr) ;
 }
 
-int computeCellGain(const V * varr){
+int computeCellGain( V * varr){
 	int i, j;
 	int gain[NODE_LIMIT] ;
 	for( i = 1; varr[i].block != 0 && !varr[i].locked; i++){
-		gain[i] = 0 ;	
+		varr[i].gain = 0 ;	
 		for( j = 0; j < varr[i].ldc; j++){
 			if( varr[varr[i].ld[j]].block == varr[i].block ){
-				gain[i] -= 1;
+				varr[i].gain -= 1;
 			}else{if(varr[varr[i].ld[j]].block != varr[i].block){
-				gain[i] += 1;
+				varr[i].gain += 1;
 			}}
 		}
-		printf("Gain of Net[%d]: %d\n", i, gain[i]);
+		printf("Gain of Net[%d]: %d\n", i, varr[i].gain);
 	}
 	return 0;
 }
-
-int 
+int  getCellWithMaxGain(const V * varr){
+	int maxIndex = 1;
+	int i ;
+	for(i = 1; varr[i].block != 0 && !varr[i].locked && !varr[i].discarded; i++){
+		if(varr[i].gain > varr[maxIndex].gain){
+			maxIndex = i ;
+		}
+	}
+	return maxIndex ;
+}
+int  selectCell(const V * varr){
+	int i = 1;
+}
