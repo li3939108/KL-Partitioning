@@ -3,6 +3,7 @@
 #include <string.h>
 
 #define NODE_LIMIT 10000
+#define NET_LIMIT 10000
 
 struct vertex {
 	char block ;
@@ -13,15 +14,22 @@ struct vertex {
 	int ldc;
 	int* ld;
 };
+struct net{
+	int ldc; 
+	int* ld;
+};
 typedef struct vertex V;
+typedef struct net N;
 
 V vertexarr[NODE_LIMIT];
+N netarr[NET_LIMIT];
 int maxGain[NODE_LIMIT];
 float ratio ;
 int sumsize ;
 
 int main(int argc, char ** argv){
 	memset(vertexarr, 0, sizeof(V) * NODE_LIMIT);
+	memset(netarr, 0, sizeof(N) * NET_LIMIT);
 	if(argc == 2){
 		FILE *input = NULL;
 		int state = 0;
@@ -40,21 +48,23 @@ int main(int argc, char ** argv){
 				switch(state){
 				case 0:
 				index = number ;
+/*
 				if(index <= 50 ){
 					vertexarr[index].block = 'A' ;
 				}else{if(index >= 50){
 					vertexarr[index].block = 'B' ;
 				}}
+*/
 				break ;
 
 				case 1:
-				vertexarr[index].ldc = number ;
-				vertexarr[index].ld = calloc(sizeof(int), number);
-				memset(vertexarr[index].ld, 0, number * sizeof(int));
+				netarr[index].ldc = number ;
+				netarr[index].ld = calloc(sizeof(int), number);
+				memset(netarr[index].ld, 0, number * sizeof(int));
 				break ;
 
 				case 2:
-				vertexarr[index].ld[ldindex] = number;
+				netarr[index].ld[ldindex] = number;
 				ldindex += 1 ;
 				break ;
 
@@ -82,16 +92,16 @@ int main(int argc, char ** argv){
 	ratio = 0.5 ;
 
 	int i = 0;
-	for( i = 1; vertexarr[i].block != 0 && !vertexarr[i].locked ; i++){
+	for( i = 1; netarr[i].ldc != 0 ; i++){
 		int j = 0;
-		printf("Net %d(%d): ", i, vertexarr[i].ldc);
-		for(j = 0; j < vertexarr[i].ldc; j++){
-			printf("%d ", vertexarr[i].ld[j]);
+		printf("Net %d(%d): ", i, netarr[i].ldc);
+		for(j = 0; j < netarr[i].ldc; j++){
+			printf("%d ", netarr[i].ld[j]);
 		} 
 		putchar('\n');
 		
 	}
-	computeCellGain( vertexarr) ;
+//	computeCellGain( vertexarr) ;
 }
 
 int computeCellGain( V * varr){
@@ -135,6 +145,6 @@ float getBlockRatio(unsigned char block){
 int  selectCell(const V * varr){
 	int i = 1;
 	int baseCellIndex = getCellWithMaxGain(varr) ;
-	if(	getBlockSize(varr[baseCellIndex].block) - 1 >= getBlockRatio(varr[baseCellIndex].block) * sumsize){
+	if(	getBlockSize(varr[baseCellIndex].block, varr) - 1 >= getBlockRatio(varr[baseCellIndex].block) * sumsize){
 	}
 }
