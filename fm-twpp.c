@@ -58,8 +58,6 @@ int main(int argc, char ** argv){
 
 				case 1:
 				netarr[index].ldsc = number ;
-//				netarr[index].ld = calloc(sizeof(LC), number);
-//				memset(netarr[index].ld, 0, number * sizeof(int));
 				break ;
 
 				case 2:
@@ -182,6 +180,6 @@ float getBlockRatio(unsigned char block){
 int  selectCell(const V * varr){
 	int i = 1;
 	int baseCellIndex = getCellWithMaxGain(varr) ;
-	if(	getBlockSize(varr[baseCellIndex].block, varr) - 1 >= getBlockRatio(varr[baseCellIndex].block) * sumsize){
+	if(getBlockSize(varr[baseCellIndex].block, varr) - 1 >= getBlockRatio(varr[baseCellIndex].block) * sumsize){
 	}
 }
