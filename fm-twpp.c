@@ -120,6 +120,11 @@ int  getCellWithMaxGain(const V * varr){
 	}
 	return maxIndex ;
 }
+int getBlockSize(unsigned char block, const V * varr){
+	int i ;
+	for(i = 1; varr[i].block == block && i <= sumsize ; i++){}
+	return i ;
+}
 int  selectCell(const V * varr){
 	int i = 1;
 }
