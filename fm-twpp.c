@@ -4,7 +4,11 @@
 
 #define NODE_LIMIT 10000
 #define NET_LIMIT 10000
-
+struct linkCounter{
+	int index ;
+	int count ;
+} ;
+typedef struct linkCounter LC ;
 struct vertex {
 	char block ;
 	unsigned char locked  ;
@@ -12,13 +16,14 @@ struct vertex {
 	unsigned char discarded ;
 	int gain;
 	int ldc;
-	int* ld;
-};
-struct net{
-	int ldc; 
-	int* ld;
+	LC* ld;
 };
 typedef struct vertex V;
+struct net{
+	int ldsc ;
+	int ldc; 
+	LC* ld;
+};
 typedef struct net N;
 
 V vertexarr[NODE_LIMIT];
@@ -34,7 +39,7 @@ int main(int argc, char ** argv){
 		FILE *input = NULL;
 		int state = 0;
 		int index, Vindex ; 
-		int ldindex = 0, Vldindex = 0;
+		int ldindex = 0 ;
 		input = fopen(argv[1], "r");
 		for(;;){
 			char c = fgetc(input);
@@ -46,22 +51,49 @@ int main(int argc, char ** argv){
 				ungetc(c, input);
 				fscanf(input, "%d", &number);
 				switch(state){
+				int i ;
 				case 0:
 				index = number ;
 				break ;
 
 				case 1:
-				netarr[index].ldc = number ;
-				netarr[index].ld = calloc(sizeof(int), number);
-				memset(netarr[index].ld, 0, number * sizeof(int));
+				netarr[index].ldsc = number ;
+//				netarr[index].ld = calloc(sizeof(LC), number);
+//				memset(netarr[index].ld, 0, number * sizeof(int));
 				break ;
 
 				case 2:
-				Vindex = netarr[index].ld[ldindex] = number;
-				ldindex += 1 ;
-				vertexarr[Vindex].ld = (int*) realloc(vertexarr[Vindex].ld, sizeof(int) * (vertexarr[Vindex].ldc + 1));
-				vertexarr[Vindex].ld[vertexarr[Vindex].ldc] = index ;
-				vertexarr[Vindex].ldc += 1;
+				ldindex =  netarr[index].ldc - 1;
+				for(i = ldindex ; i >= 0  ; i--){
+					if(netarr[index].ld[i].index == number){
+						ldindex = i  ;
+						break;
+					}
+				}
+				if(i == -1){
+					netarr[index].ld = (LC*) realloc(netarr[index].ld, sizeof(LC) * (netarr[index].ldc + 1)) ;
+					netarr[index].ldc += 1 ;
+					ldindex += 1 ;
+					netarr[index].ld[ldindex].count = 0 ;
+				}
+				Vindex = netarr[index].ld[ldindex].index = number;
+				netarr[index].ld[ldindex].count += 1 ;
+
+				ldindex = vertexarr[Vindex].ldc - 1;
+				for(i = ldindex; i>= 0 ; i--){
+					if(vertexarr[Vindex].ld[i].index == index){
+						ldindex = i ;
+						break ;
+					}
+				}
+				if(i== - 1){
+					vertexarr[Vindex].ld = (LC*) realloc(vertexarr[Vindex].ld, sizeof(LC) * (vertexarr[Vindex].ldc + 1));
+					vertexarr[Vindex].ldc += 1;
+					ldindex += 1 ;
+					vertexarr[Vindex].ld[ldindex].count = 0;
+				}
+				vertexarr[Vindex].ld[ldindex].index = index ;
+				vertexarr[Vindex].ld[ldindex].count += 1;
 				break ;
 
 				default:
@@ -92,7 +124,7 @@ int main(int argc, char ** argv){
 		int j = 0;
 		printf("Net %d(%d): ", i, netarr[i].ldc);
 		for(j = 0; j < netarr[i].ldc; j++){
-			printf("%d ", netarr[i].ld[j]);
+			printf("%d(%d) ", netarr[i].ld[j].index, netarr[i].ld[j].count);
 		} 
 		putchar('\n');
 		
@@ -101,7 +133,7 @@ int main(int argc, char ** argv){
 		int j = 0 ;
 		printf("Node %d(%d): ", i, vertexarr[i].ldc);
 		for(j = 0; j < vertexarr[i].ldc; j++){
-			printf("%d ", vertexarr[i].ld[j]);
+			printf("%d(%d) ", vertexarr[i].ld[j].index, vertexarr[i].ld[j].count);
 		} 
 		putchar('\n');
 		
@@ -115,9 +147,9 @@ int computeCellGain( V * varr){
 	for( i = 1; varr[i].block != 0 && !varr[i].locked; i++){
 		varr[i].gain = 0 ;	
 		for( j = 0; j < varr[i].ldc; j++){
-			if( varr[varr[i].ld[j]].block == varr[i].block ){
+			if( varr[varr[i].ld[j].index].block == varr[i].block ){
 				varr[i].gain -= 1;
-			}else{if(varr[varr[i].ld[j]].block != varr[i].block){
+			}else{if(varr[varr[i].ld[j].index].block != varr[i].block){
 				varr[i].gain += 1;
 			}}
 		}
