@@ -33,8 +33,8 @@ int main(int argc, char ** argv){
 	if(argc == 2){
 		FILE *input = NULL;
 		int state = 0;
-		int index ; 
-		int ldindex = 0;
+		int index, Vindex ; 
+		int ldindex = 0, Vldindex = 0;
 		input = fopen(argv[1], "r");
 		for(;;){
 			char c = fgetc(input);
@@ -48,13 +48,6 @@ int main(int argc, char ** argv){
 				switch(state){
 				case 0:
 				index = number ;
-/*
-				if(index <= 50 ){
-					vertexarr[index].block = 'A' ;
-				}else{if(index >= 50){
-					vertexarr[index].block = 'B' ;
-				}}
-*/
 				break ;
 
 				case 1:
@@ -64,8 +57,11 @@ int main(int argc, char ** argv){
 				break ;
 
 				case 2:
-				netarr[index].ld[ldindex] = number;
+				Vindex = netarr[index].ld[ldindex] = number;
 				ldindex += 1 ;
+				vertexarr[Vindex].ld = (int*) realloc(vertexarr[Vindex].ld, sizeof(int) * (vertexarr[Vindex].ldc + 1));
+				vertexarr[Vindex].ld[vertexarr[Vindex].ldc] = index ;
+				vertexarr[Vindex].ldc += 1;
 				break ;
 
 				default:
@@ -101,12 +97,21 @@ int main(int argc, char ** argv){
 		putchar('\n');
 		
 	}
+	for( i = 1; vertexarr[i].ldc != 0 ; i++){
+		int j = 0 ;
+		printf("Node %d(%d): ", i, vertexarr[i].ldc);
+		for(j = 0; j < vertexarr[i].ldc; j++){
+			printf("%d ", vertexarr[i].ld[j]);
+		} 
+		putchar('\n');
+		
+	}
 //	computeCellGain( vertexarr) ;
 }
 
 int computeCellGain( V * varr){
 	int i, j;
-	int gain[NODE_LIMIT] ;
+//	int gain[NODE_LIMIT] ;
 	for( i = 1; varr[i].block != 0 && !varr[i].locked; i++){
 		varr[i].gain = 0 ;	
 		for( j = 0; j < varr[i].ldc; j++){
