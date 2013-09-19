@@ -4,6 +4,13 @@
 
 #define NODE_LIMIT 10000
 #define NET_LIMIT 10000
+#define BLOCK_LIMIT 2 
+struct gain{
+	char T ;
+	int g ;
+};
+typedef struct gain G ;
+
 struct linkCounter{
 	int index ;
 	int count ;
@@ -14,7 +21,7 @@ struct vertex {
 	unsigned char locked  ;
 	unsigned char selected ;
 	unsigned char discarded ;
-	int gain;
+	int gain[BLOCK_LIMIT] ;
 	int ldc;
 	LC* ld;
 };
@@ -92,6 +99,12 @@ int main(int argc, char ** argv){
 				}
 				vertexarr[Vindex].ld[ldindex].index = index ;
 				vertexarr[Vindex].ld[ldindex].count += 1;
+				
+				if(Vindex <= 10){
+					vertexarr[Vindex].block = 'A' ;
+				}else{
+					vertexarr[Vindex].block = 'B' ;
+				}
 				break ;
 
 				default:
@@ -139,11 +152,24 @@ int main(int argc, char ** argv){
 //	computeCellGain( vertexarr) ;
 }
 
-int computeCellGain( V * varr){
+int blockHash(char block){
+	switch(block){
+	case 'A':
+	return 0 ;
+	
+	case 'B':
+	return 1 ;
+
+	default :
+	return -1 ;
+	}
+}
+int computeCellGain( V * varr, char F, char T){
 	int i, j;
-	for( i = 1; varr[i].block != 0 && !varr[i].locked; i++){
-		varr[i].gain = 0 ;	
+	for( i = 1; varr[i].block != 0 && varr[i].block == F && !varr[i].locked; i++){
+		varr[i].gain[blockHash(T)] = 0 ;	
 		for( j = 0; j < varr[i].ldc; j++){
+			
 			if( varr[varr[i].ld[j].index].block == varr[i].block ){
 				varr[i].gain -= 1;
 			}else{if(varr[varr[i].ld[j].index].block != varr[i].block){
