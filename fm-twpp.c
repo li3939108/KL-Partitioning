@@ -38,6 +38,7 @@ N netarr[NET_LIMIT];
 int maxGain[NODE_LIMIT];
 float ratio ;
 int sumsize ;
+int computeCellGain( N * narr, V * varr, char F, char T);
 
 int main(int argc, char ** argv){
 	memset(vertexarr, 0, sizeof(V) * NODE_LIMIT);
@@ -100,7 +101,7 @@ int main(int argc, char ** argv){
 				vertexarr[Vindex].ld[ldindex].index = index ;
 				vertexarr[Vindex].ld[ldindex].count += 1;
 				
-				if(Vindex <= 10){
+				if(Vindex % 2 == 0){
 					vertexarr[Vindex].block = 'A' ;
 				}else{
 					vertexarr[Vindex].block = 'B' ;
@@ -142,14 +143,14 @@ int main(int argc, char ** argv){
 	}
 	for( i = 1; vertexarr[i].ldc != 0 ; i++){
 		int j = 0 ;
-		printf("Node %d(%d): ", i, vertexarr[i].ldc);
+		printf("Node %d(%d)[%c]: ", i, vertexarr[i].ldc, vertexarr[i].block);
 		for(j = 0; j < vertexarr[i].ldc; j++){
 			printf("%d(%d) ", vertexarr[i].ld[j].index, vertexarr[i].ld[j].count);
 		} 
 		putchar('\n');
-		
 	}
-//	computeCellGain( vertexarr) ;
+	computeCellGain(netarr, vertexarr, 'A', 'B');
+	computeCellGain(netarr, vertexarr, 'B', 'A');
 }
 
 int blockHash(char block){
@@ -164,19 +165,31 @@ int blockHash(char block){
 	return -1 ;
 	}
 }
-int computeCellGain( V * varr, char F, char T){
-	int i, j;
-	for( i = 1; varr[i].block != 0 && varr[i].block == F && !varr[i].locked; i++){
-		varr[i].gain[blockHash(T)] = 0 ;	
-		for( j = 0; j < varr[i].ldc; j++){
-			
-			if( varr[varr[i].ld[j].index].block == varr[i].block ){
-				varr[i].gain -= 1;
-			}else{if(varr[varr[i].ld[j].index].block != varr[i].block){
-				varr[i].gain += 1;
-			}}
+int computeCellGain( N * narr, V * varr, char F, char T){
+	int i, j, k;
+	for( i = 1; varr[i].block != 0 ; i++){
+		if(varr[i].block == F && !varr[i].locked){
+			varr[i].gain[blockHash(T)] = 0 ;	
+			for( j = 0; j < varr[i].ldc; j++){
+				int Fcount = 0, Tcount = 0;
+				for(k = 0; k < narr[varr[i].ld[j].index].ldc ; k++){
+					int index = narr[varr[i].ld[j].index].ld[k].index;
+					if(index != i && varr[index].block == F){
+						Fcount += 1 ;
+					}else{if(index != i && varr[index].block == T){
+						Tcount += 1 ;
+					}}
+				}
+				if(Fcount == 0 && Tcount > 0){
+					varr[i].gain[blockHash(T)] += 1;
+					printf("haha +1 , node [%d] and net (%d)\n", i, varr[i].ld[j].index);
+				}else {if(Tcount == 0 && Fcount > 0){
+					varr[i].gain[blockHash(T)] -= 1;
+					printf("oo:( -1 , node [%d] and net (%d)\n", i, varr[i].ld[j].index);
+				}}
+			}
+			printf("   Gain of move [%d] from %c to %c: %d\n", i, F, T, varr[i].gain[blockHash(T)] );
 		}
-		printf("Gain of Net[%d]: %d\n", i, varr[i].gain);
 	}
 	return 0;
 }
