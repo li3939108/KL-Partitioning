@@ -141,7 +141,6 @@ int main(int argc, char ** argv){
 
 int computeCellGain( V * varr){
 	int i, j;
-//	int gain[NODE_LIMIT] ;
 	for( i = 1; varr[i].block != 0 && !varr[i].locked; i++){
 		varr[i].gain = 0 ;	
 		for( j = 0; j < varr[i].ldc; j++){
