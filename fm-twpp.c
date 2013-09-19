@@ -171,7 +171,16 @@ int main(int argc, char ** argv){
 	}
 }
 
-
+int blockCount(N * narr , V * varr, char block){
+	int count = 0 , i;
+	for (i = 0; i < narr->ldc ; i++){
+		int index = narr->ld[i].index ;
+		if( varr[index].block == block){
+			count += 1 ;
+		}
+	}
+	return count ;
+}
 int computeCellGain( N * narr, V * varr, char F, char T){
 	int i, j, k;
 	for( i = 1; varr[i].block != 0 ; i++){
@@ -179,14 +188,8 @@ int computeCellGain( N * narr, V * varr, char F, char T){
 			varr[i].gain[T - 'A'] = 0 ;	
 			for( j = 0; j < varr[i].ldc; j++){
 				int Fcount = 0, Tcount = 0;
-				for(k = 0; k < narr[varr[i].ld[j].index].ldc ; k++){
-					int index = narr[varr[i].ld[j].index].ld[k].index;
-					if( varr[index].block == F){
-						Fcount += 1 ;
-					}else{if(varr[index].block == T){
-						Tcount += 1 ;
-					}}
-				}
+				Fcount = blockCount(narr + varr[i].ld[j].index, varr, F) ;
+				Tcount = blockCount(narr + varr[i].ld[j].index, varr, T) ;
 				if(Fcount == 1){
 					varr[i].gain[T - 'A'] += 1;
 //					printf("haha +1 , node [%d] and net (%d)\n", i, varr[i].ld[j].index);
