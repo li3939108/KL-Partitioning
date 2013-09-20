@@ -175,7 +175,8 @@ int main(int argc, char ** argv){
 		}else{
 			vertexarr[tempmove.nodeIndex].locked = 1 ;
 			movearr[i] = tempmove ;
-			//updateGains();
+			printf("maxMove [%d] to block %c\n", movearr[i].nodeIndex, movearr[i].block);
+			updateGains(netarr, vertexarr, movearr + i);
 		}
 	}
 }
@@ -261,7 +262,8 @@ M getCellWithMaxGain(const V * varr, int way){
 	M move;
 	for(i = 1; varr[i].block != 0 ; i++){
 		if(varr[i].locked){continue;}
-		for(j = 0;j < way && j != varr[i].block - 'A'; j++){
+		for(j = 0;j < way ; j++){
+			if( j == varr[i].block - 'A'){continue;}
 			if(varr[i].gain[j] > maxGain && balanceCriterion(varr, 20, varr[i].block, j + 'A') ){
 				maxGain = varr[i].gain[j] ;
 				maxIndex = i ;
@@ -285,18 +287,19 @@ int updateGains(N * narr, V * varr, M * move){
 	for (i = 0 ; i < varr[move->nodeIndex].ldc; i++){
 		int j;
 		int netIndex = varr[move->nodeIndex].ld[i].index ;
-		int index = narr[netIndex].ld[j].index ;
 		char F = varr[move->nodeIndex].block ;
 		char T = move->block ;
 		int Fcount = narr[netIndex].blkCnt[F-'A'];//blockCount(narr + netIndex, varr, F);
 		int Tcount = narr[netIndex].blkCnt[T-'A'];//blockCount(narr + netIndex, varr, T);
 		if(Tcount == 0){
 			for(j = 0; j< narr[netIndex].ldc ; j ++){
+				int index = narr[netIndex].ld[j].index ;
 				if(varr[index].locked){continue;}
 				varr[index].gain[T - 'A'] += 1;
 			}
 		}else{if(Tcount == 1){
 			for(j = 0; j< narr[netIndex].ldc; j++){
+				int index = narr[netIndex].ld[j].index ;
 				if(varr[index].locked||varr[index].block != T ){continue;}
 				varr[index].gain[T - 'A'] -= 1;
 			}
@@ -307,11 +310,13 @@ int updateGains(N * narr, V * varr, M * move){
 		Tcount = narr[netIndex].blkCnt[T-'A'];//blockCount(narr + netIndex, varr, T);
 		if(Fcount == 0){
 			for(j = 0; j< narr[netIndex].ldc ; j ++){
+				int index = narr[netIndex].ld[j].index ;
 				if(varr[index].locked){continue;}
 				varr[index].gain[T - 'A'] -= 1;
 			}
 		}else{if(Fcount == 1){
 			for(j = 0; j< narr[netIndex].ldc; j++){
+				int index = narr[netIndex].ld[j].index ;
 				if(varr[index].locked || varr[index].block != F ){continue;}
 				varr[index].gain[T - 'A'] += 1;
 			}
