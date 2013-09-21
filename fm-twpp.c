@@ -43,11 +43,18 @@ typedef struct move M ;
 M movearr[NODE_LIMIT];
 V vertexarr[NODE_LIMIT];
 N netarr[NET_LIMIT];
+int gainSum[NODE_LIMIT] ;
+int balanceValue[NODE_LIMIT ];
+
 int sumsize ;
+
+int gainSumMax = -NODE_LIMIT;
+int gainSumMaxIndex = -1 ;
 
 int computeCellGain( N * narr, V * varr, char F, char T);
 M  getCellWithMaxGain(const N * narr, const V * varr, int way);
 int blockCount(const N * netN , const V * varr, char block);
+int balanceCriterion(const N * narr, const V * varr, int V, char F, char T);
 
 int main(int argc, char ** argv){
 	M tempmove ;
@@ -142,6 +149,7 @@ int main(int argc, char ** argv){
 	}
 
 	int i = 0;
+	
 	for( i = 1; netarr[i].ldc != 0 ; i++){
 		int j = 0;
 		printf("Net %d(%d): ", i, netarr[i].ldc);
@@ -165,12 +173,25 @@ int main(int argc, char ** argv){
 			netarr[i].blkCnt[j] = blockCount(netarr + i, vertexarr, j + 'A');
 		}
 	}
+///////////////////////
+	start:
 	computeCellGain(netarr, vertexarr, 'A', 'B');
 	computeCellGain(netarr, vertexarr, 'B', 'A');
 	for(i = 0; ; i++){
 		int j;
 		tempmove = getCellWithMaxGain(netarr, vertexarr, 2);
 		printGain(netarr, vertexarr);
+		gainSum[i] = (i - 1 >= 0 ? gainSum[i - 1] : 0) + vertexarr[tempmove.nodeIndex].gain[tempmove.block - 'A'] ;
+		balanceValue[i] = balanceCriterion(netarr, vertexarr, 20, vertexarr[tempmove.nodeIndex].block, tempmove.block);
+		if(gainSum[i] > gainSumMax){
+			gainSumMax = gainSum[i] ;
+			gainSumMaxIndex = i ;
+		}else{if(gainSum[i] == gainSumMax){
+			if(balanceValue[i] > balanceValue[gainSumMaxIndex]){
+				gainSumMax = gainSum[i] ;
+				gainSumMaxIndex = i ;
+			}
+		}}
 		if(tempmove.nodeIndex == 0 ){
 			break ;
 		}else{
@@ -185,11 +206,56 @@ int main(int argc, char ** argv){
 		}
 */
 	}
+	if(gainSumMax <= 0){
+		goto end ;
+	}
 /*
 	for(i = 0; movearr[i].block != 0 ; i++){
 		printf("move [%d] to %c\n", movearr[i].nodeIndex, movearr[i].block );
 	}
 */
+	gainSum[i + 1] = -NODE_LIMIT ;
+	for(i = 0; gainSum[i] != -NODE_LIMIT; i++){
+		printf("gainsum [%d] is %d\n", i, gainSum[i]);
+	}
+	printf("max gain sum [%d] %d \n",gainSumMaxIndex, gainSum[gainSumMaxIndex] );
+	for(i = 0; i <= gainSumMaxIndex; i++){
+		vertexarr[movearr[i].nodeIndex].block = movearr[i].block ;
+	//	printf("v.locked %c  marr.block %c\n",vertexarr[movearr[i].nodeIndex].locked, movearr[i].block);
+	}
+	for(i = 1; vertexarr[i].block != 0 ;i++){
+		vertexarr[i].locked = 0 ;
+	}
+	gainSumMax  = -NODE_LIMIT ; 
+	gainSumMaxIndex = -1 ;
+	printf("---------------\n");
+	for( i = 1; netarr[i].ldc != 0 ; i++){
+		int j = 0;
+		printf("Net %d(%d): ", i, netarr[i].ldc);
+		for(j = 0; j < netarr[i].ldc; j++){
+			printf("%d(%d) ", netarr[i].ld[j].index, netarr[i].ld[j].count);
+		} 
+		putchar('\n');
+		
+	}
+	for( i = 1; vertexarr[i].ldc != 0 ; i++){
+		int j = 0 ;
+		printf("Node %d(%d)[%c]: ", i, vertexarr[i].ldc, vertexarr[i].block);
+		for(j = 0; j < vertexarr[i].ldc; j++){
+			printf("%d(%d) ", vertexarr[i].ld[j].index, vertexarr[i].ld[j].count);
+		} 
+		putchar('\n');
+	}
+	for(i = 1; netarr[i].ldsc != 0; i++){
+		int j ;
+		for(j = 0; j < WAY; j++){
+			netarr[i].blkCnt[j] = blockCount(netarr + i, vertexarr, j + 'A');
+		}
+	}
+	printf("end of pass\n");
+	goto start ;
+	end:
+	return 0 ;
 }
 int printGain(const N * narr, const V * varr){
 	int i ;
@@ -272,13 +338,19 @@ int freeCells(const V * varr){
 }
 int balanceCriterion(const N * narr, const V * varr, int V, char F, char T){
 	//printf("freeCells %d\n", freeCells(varr));
+	/*
+	freeCells(varr)/5
+        freeCells(varr)/5
+        freeCells(varr)/5
+        freeCells(varr)/5
+	*/
 	if( 
-	ratioOfBlock(F) * V - (freeCells(varr)/5 + 1) <= sizeOfBlock(narr, varr, F) - 1 &&
-	ratioOfBlock(F) * V + (freeCells(varr)/5 + 1)>= sizeOfBlock(narr, varr, F) - 1&&
-	ratioOfBlock(T) * V - (freeCells(varr)/5 + 1) <= sizeOfBlock(narr, varr, T) + 1&&
-	ratioOfBlock(T) * V + (freeCells(varr)/5 + 1) >= sizeOfBlock(narr, varr, T) + 1){
+	ratioOfBlock(F) * V - ( + 1) <= sizeOfBlock(narr, varr, F) - 1 &&
+	ratioOfBlock(F) * V + ( + 1)>= sizeOfBlock(narr, varr, F) - 1&&
+	ratioOfBlock(T) * V - ( + 1) <= sizeOfBlock(narr, varr, T) + 1&&
+	ratioOfBlock(T) * V + ( + 1) >= sizeOfBlock(narr, varr, T) + 1){
 //		printf("BalanceCriterion yes\n");
-		return 1 ;
+		return NODE_LIMIT - abs(ratioOfBlock(F) * V - (sizeOfBlock(narr, varr, F) - 1)) - abs(ratioOfBlock(F) * V - (sizeOfBlock(narr, varr, T) + 1)) ;
 	}else{
 //		printf("BalanceCriterion no\n");
 		return 0;
