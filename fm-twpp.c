@@ -43,11 +43,10 @@ typedef struct move M ;
 M movearr[NODE_LIMIT];
 V vertexarr[NODE_LIMIT];
 N netarr[NET_LIMIT];
-int maxGain[NODE_LIMIT];
 int sumsize ;
 
 int computeCellGain( N * narr, V * varr, char F, char T);
-M  getCellWithMaxGain(const V * varr, int way);
+M  getCellWithMaxGain(const N * narr, const V * varr, int way);
 int blockCount(const N * netN , const V * varr, char block);
 
 int main(int argc, char ** argv){
@@ -169,16 +168,37 @@ int main(int argc, char ** argv){
 	computeCellGain(netarr, vertexarr, 'A', 'B');
 	computeCellGain(netarr, vertexarr, 'B', 'A');
 	for(i = 0; ; i++){
-		tempmove = getCellWithMaxGain(vertexarr, 2);
+		int j;
+		tempmove = getCellWithMaxGain(netarr, vertexarr, 2);
+		printGain(netarr, vertexarr);
 		if(tempmove.nodeIndex == 0 ){
 			break ;
 		}else{
-			vertexarr[tempmove.nodeIndex].locked = 1 ;
+			vertexarr[tempmove.nodeIndex].locked = tempmove.block ;
 			movearr[i] = tempmove ;
 			printf("maxMove [%d] to block %c\n", movearr[i].nodeIndex, movearr[i].block);
 			updateGains(netarr, vertexarr, movearr + i);
 		}
+/*
+		for(j = 1; netarr[j].ldsc != 0; j++){
+			printf("Net%d A%d B%d\n", j, netarr[j].blkCnt[0], netarr[j].blkCnt[1]);
+		}
+*/
 	}
+/*
+	for(i = 0; movearr[i].block != 0 ; i++){
+		printf("move [%d] to %c\n", movearr[i].nodeIndex, movearr[i].block );
+	}
+*/
+}
+int printGain(const N * narr, const V * varr){
+	int i ;
+	for( i = 1; varr[i].block != 0 ; i++){
+		if(!varr[i].locked){
+			printf("   Gain of move [%d] from %c : %d\n", i, varr[i].block, varr[i].gain[!(varr[i].block - 'A')] );
+		}
+	}
+
 }
 
 int blockCount(const N * netN , const V * varr, char block){
@@ -209,7 +229,7 @@ int computeCellGain( N * narr, V * varr, char F, char T){
 //					printf("oo:( -1 , node [%d] and net (%d)\n", i, varr[i].ld[j].index);
 				}}
 			}
-			printf("   Gain of move [%d] from %c to %c: %d\n", i, F, T, varr[i].gain[T - 'A'] );
+		//	printf("   Gain of move [%d] from %c to %c: %d\n", i, F, T, varr[i].gain[T - 'A'] );
 		}
 	}
 	return 0;
@@ -226,36 +246,45 @@ float ratioOfBlock(char block){
 	return -1.0;
 	}
 }
-int sizeOfBlock(const V * varr, char block){
+int sizeOfBlock(const N * narr, const V * varr, char block){
 	int i , count = 0;
 	for(i = 1; varr[i].block != 0 ; i++){
-		if(varr[i].block == block){
-			count += 1 ;
+		if(!varr[i].locked){
+			if(varr[i].block == block){
+				count += 1 ;
+			}
+		}else{
+			if(varr[i].locked == block ){
+				count += 1 ;
+			}
 		}
 	}
 	return count ;
 }
-float freeCells(const V * varr){
+int freeCells(const V * varr){
 	int i , count = 0;
 	for(i = 1; varr[i].block != 0; i++){
-		if(varr[i].locked){
+		if(!varr[i].locked){
 			count += 1 ;
 		}
 	}
 	return count  ;
 }
-int balanceCriterion(const V * varr, int V, char F, char T){
+int balanceCriterion(const N * narr, const V * varr, int V, char F, char T){
+	//printf("freeCells %d\n", freeCells(varr));
 	if( 
-	(int)(ratioOfBlock(F) * V - freeCells(varr)/5.0) <= sizeOfBlock(varr, F) &&
-	(int)(ratioOfBlock(F) * V + freeCells(varr)/5.0) >= sizeOfBlock(varr, F) &&
-	(int)(ratioOfBlock(T) * V - freeCells(varr)/5.0) <= sizeOfBlock(varr, T) &&
-	(int)(ratioOfBlock(T) * V + freeCells(varr)/5.0) >= sizeOfBlock(varr, T) ){
+	ratioOfBlock(F) * V - (freeCells(varr)/5 + 1) <= sizeOfBlock(narr, varr, F) - 1 &&
+	ratioOfBlock(F) * V + (freeCells(varr)/5 + 1)>= sizeOfBlock(narr, varr, F) - 1&&
+	ratioOfBlock(T) * V - (freeCells(varr)/5 + 1) <= sizeOfBlock(narr, varr, T) + 1&&
+	ratioOfBlock(T) * V + (freeCells(varr)/5 + 1) >= sizeOfBlock(narr, varr, T) + 1){
+//		printf("BalanceCriterion yes\n");
 		return 1 ;
 	}else{
+//		printf("BalanceCriterion no\n");
 		return 0;
 	}
 }
-M getCellWithMaxGain(const V * varr, int way){
+M getCellWithMaxGain(const N * narr, const V * varr, int way){
 	int i ,j;
 	int maxGain = -NET_LIMIT, maxIndex = 0;
 	char maxBlock ;
@@ -264,13 +293,13 @@ M getCellWithMaxGain(const V * varr, int way){
 		if(varr[i].locked){continue;}
 		for(j = 0;j < way ; j++){
 			if( j == varr[i].block - 'A'){continue;}
-			if(varr[i].gain[j] > maxGain && balanceCriterion(varr, 20, varr[i].block, j + 'A') ){
+			if(varr[i].gain[j] > maxGain && balanceCriterion(narr, varr, 20, varr[i].block, j + 'A') ){
 				maxGain = varr[i].gain[j] ;
 				maxIndex = i ;
 				maxBlock = j + 'A'; 
-			}else{if(varr[i].gain[j] == maxGain && balanceCriterion(varr, 20, varr[i].block, j + 'A')){
-				if(sizeOfBlock(varr, varr[i].block) - sizeOfBlock(varr, j - 'A') > 
-				sizeOfBlock(varr, varr[maxIndex].block) - sizeOfBlock(varr, maxBlock)){
+			}else{if(varr[i].gain[j] == maxGain && balanceCriterion(narr, varr, 20, varr[i].block, j + 'A')){
+				if(sizeOfBlock(narr, varr, varr[i].block) - sizeOfBlock(narr, varr, j - 'A') > 
+				sizeOfBlock(narr, varr, varr[maxIndex].block) - sizeOfBlock(narr, varr, maxBlock)){
 					maxIndex = i ;
 					maxBlock = j + 'A' ;
 				}
@@ -289,58 +318,41 @@ int updateGains(N * narr, V * varr, M * move){
 		int netIndex = varr[move->nodeIndex].ld[i].index ;
 		char F = varr[move->nodeIndex].block ;
 		char T = move->block ;
-		int Fcount = narr[netIndex].blkCnt[F-'A'];//blockCount(narr + netIndex, varr, F);
-		int Tcount = narr[netIndex].blkCnt[T-'A'];//blockCount(narr + netIndex, varr, T);
+		int Fcount = narr[netIndex].blkCnt[F-'A'];
+		int Tcount = narr[netIndex].blkCnt[T-'A'];
 		if(Tcount == 0){
 			for(j = 0; j< narr[netIndex].ldc ; j ++){
 				int index = narr[netIndex].ld[j].index ;
 				if(varr[index].locked){continue;}
 				varr[index].gain[T - 'A'] += 1;
+				printf("[%d] + 1\n", index );
 			}
 		}else{if(Tcount == 1){
 			for(j = 0; j< narr[netIndex].ldc; j++){
 				int index = narr[netIndex].ld[j].index ;
 				if(varr[index].locked||varr[index].block != T ){continue;}
-				varr[index].gain[T - 'A'] -= 1;
+				varr[index].gain[F - 'A'] -= 1;
+				printf("[%d] - 1\n", index );
 			}
 		}}
 		narr[netIndex].blkCnt[F-'A'] -= 1;
 		narr[netIndex].blkCnt[T-'A'] += 1;
-		Fcount = narr[netIndex].blkCnt[F-'A'];//blockCount(narr + netIndex, varr, F);
-		Tcount = narr[netIndex].blkCnt[T-'A'];//blockCount(narr + netIndex, varr, T);
+		Fcount = narr[netIndex].blkCnt[F-'A'];
+		Tcount = narr[netIndex].blkCnt[T-'A'];
 		if(Fcount == 0){
 			for(j = 0; j< narr[netIndex].ldc ; j ++){
 				int index = narr[netIndex].ld[j].index ;
 				if(varr[index].locked){continue;}
-				varr[index].gain[T - 'A'] -= 1;
+				varr[index].gain[F - 'A'] -= 1;
+				printf("[%d] - 1\n", index );
 			}
 		}else{if(Fcount == 1){
 			for(j = 0; j< narr[netIndex].ldc; j++){
 				int index = narr[netIndex].ld[j].index ;
 				if(varr[index].locked || varr[index].block != F ){continue;}
 				varr[index].gain[T - 'A'] += 1;
+				printf("[%d] + 1\n", index );
 			}
 		}}
-		
 	}
 }
-/*
-int getBlockSize(unsigned char block, const V * varr){
-	int i ;
-	for(i = 1; varr[i].block == block && i <= sumsize ; i++){}
-	return i ;
-}
-float getBlockRatio(unsigned char block){
-	switch(block){
-	case 'A': return 0.5 ; 
-	case 'B': return 0.5 ;
-	default : break ;
-	}
-}
-int  selectCell(const V * varr){
-	int i = 1;
-	int baseCellIndex = getCellWithMaxGain(varr) ;
-	if(getBlockSize(varr[baseCellIndex].block, varr) - 1 >= getBlockRatio(varr[baseCellIndex].block) * sumsize){
-	}
-}
-*/
