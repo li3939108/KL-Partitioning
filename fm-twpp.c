@@ -4,7 +4,7 @@
 
 #define NODE_LIMIT 10000
 #define NET_LIMIT 10000
-#define BLOCK_LIMIT 2 
+#define BLOCK_LIMIT 5
 #define WAY 2
 struct gain{
 	char T ;
@@ -20,7 +20,6 @@ typedef struct linkCounter LC ;
 struct vertex {
 	char block ;
 	unsigned char locked  ;
-	unsigned char selected ;
 	int gain[BLOCK_LIMIT] ;
 	int ldc;
 	LC* ld;
@@ -55,6 +54,7 @@ int computeCellGain( N * narr, V * varr, char F, char T);
 M  getCellWithMaxGain(const N * narr, const V * varr, int way);
 int blockCount(const N * netN , const V * varr, char block);
 int balanceCriterion(const N * narr, const V * varr, int V, char F, char T);
+int printNetList(const N * narr);
 
 int main(int argc, char ** argv){
 	M tempmove ;
@@ -119,7 +119,7 @@ int main(int argc, char ** argv){
 				vertexarr[Vindex].ld[ldindex].index = index ;
 				vertexarr[Vindex].ld[ldindex].count += 1;
 				
-				if(Vindex % 2 == 0){
+				if(Vindex / 11 == 0){
 					vertexarr[Vindex].block = 'A' ;
 				}else{
 					vertexarr[Vindex].block = 'B' ;
@@ -150,15 +150,7 @@ int main(int argc, char ** argv){
 
 	int i = 0;
 	
-	for( i = 1; netarr[i].ldc != 0 ; i++){
-		int j = 0;
-		printf("Net %d(%d): ", i, netarr[i].ldc);
-		for(j = 0; j < netarr[i].ldc; j++){
-			printf("%d(%d) ", netarr[i].ld[j].index, netarr[i].ld[j].count);
-		} 
-		putchar('\n');
-		
-	}
+	printNetList(netarr);
 	for( i = 1; vertexarr[i].ldc != 0 ; i++){
 		int j = 0 ;
 		printf("Node %d(%d)[%c]: ", i, vertexarr[i].ldc, vertexarr[i].block);
@@ -187,7 +179,7 @@ int main(int argc, char ** argv){
 			gainSumMax = gainSum[i] ;
 			gainSumMaxIndex = i ;
 		}else{if(gainSum[i] == gainSumMax){
-			if(balanceValue[i] > balanceValue[gainSumMaxIndex]){
+			if(balanceValue[i] > balanceValue[gainSumMaxIndex]){//> is better 
 				gainSumMax = gainSum[i] ;
 				gainSumMaxIndex = i ;
 			}
@@ -200,20 +192,10 @@ int main(int argc, char ** argv){
 			printf("maxMove [%d] to block %c\n", movearr[i].nodeIndex, movearr[i].block);
 			updateGains(netarr, vertexarr, movearr + i);
 		}
-/*
-		for(j = 1; netarr[j].ldsc != 0; j++){
-			printf("Net%d A%d B%d\n", j, netarr[j].blkCnt[0], netarr[j].blkCnt[1]);
-		}
-*/
 	}
-	if(gainSumMax <= 0){
+	if(gainSumMax <= 0){// < 0 causes loop forever
 		goto end ;
 	}
-/*
-	for(i = 0; movearr[i].block != 0 ; i++){
-		printf("move [%d] to %c\n", movearr[i].nodeIndex, movearr[i].block );
-	}
-*/
 	gainSum[i + 1] = -NODE_LIMIT ;
 	for(i = 0; gainSum[i] != -NODE_LIMIT; i++){
 		printf("gainsum [%d] is %d\n", i, gainSum[i]);
@@ -221,7 +203,6 @@ int main(int argc, char ** argv){
 	printf("max gain sum [%d] %d \n",gainSumMaxIndex, gainSum[gainSumMaxIndex] );
 	for(i = 0; i <= gainSumMaxIndex; i++){
 		vertexarr[movearr[i].nodeIndex].block = movearr[i].block ;
-	//	printf("v.locked %c  marr.block %c\n",vertexarr[movearr[i].nodeIndex].locked, movearr[i].block);
 	}
 	for(i = 1; vertexarr[i].block != 0 ;i++){
 		vertexarr[i].locked = 0 ;
@@ -229,15 +210,6 @@ int main(int argc, char ** argv){
 	gainSumMax  = -NODE_LIMIT ; 
 	gainSumMaxIndex = -1 ;
 	printf("---------------\n");
-	for( i = 1; netarr[i].ldc != 0 ; i++){
-		int j = 0;
-		printf("Net %d(%d): ", i, netarr[i].ldc);
-		for(j = 0; j < netarr[i].ldc; j++){
-			printf("%d(%d) ", netarr[i].ld[j].index, netarr[i].ld[j].count);
-		} 
-		putchar('\n');
-		
-	}
 	for( i = 1; vertexarr[i].ldc != 0 ; i++){
 		int j = 0 ;
 		printf("Node %d(%d)[%c]: ", i, vertexarr[i].ldc, vertexarr[i].block);
@@ -255,6 +227,18 @@ int main(int argc, char ** argv){
 	printf("end of pass\n");
 	goto start ;
 	end:
+	return 0 ;
+}
+int printNetList(const N * narr){
+	int i ;
+	for( i = 1; netarr[i].ldc != 0 ; i++){
+		int j = 0;
+		printf("Net %d(%d): ", i, netarr[i].ldc);
+		for(j = 0; j < netarr[i].ldc; j++){
+			printf("%d(%d) ", netarr[i].ld[j].index, netarr[i].ld[j].count);
+		} 
+		putchar('\n');
+	}
 	return 0 ;
 }
 int printGain(const N * narr, const V * varr){
@@ -349,10 +333,8 @@ int balanceCriterion(const N * narr, const V * varr, int V, char F, char T){
 	ratioOfBlock(F) * V + ( + 1)>= sizeOfBlock(narr, varr, F) - 1&&
 	ratioOfBlock(T) * V - ( + 1) <= sizeOfBlock(narr, varr, T) + 1&&
 	ratioOfBlock(T) * V + ( + 1) >= sizeOfBlock(narr, varr, T) + 1){
-//		printf("BalanceCriterion yes\n");
 		return NODE_LIMIT - abs(ratioOfBlock(F) * V - (sizeOfBlock(narr, varr, F) - 1)) - abs(ratioOfBlock(F) * V - (sizeOfBlock(narr, varr, T) + 1)) ;
 	}else{
-//		printf("BalanceCriterion no\n");
 		return 0;
 	}
 }
