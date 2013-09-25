@@ -168,8 +168,18 @@ int main(int argc, char ** argv){
 ///////////////////////
 	start:
 	while(1){
+	int fromBlkCnt = 0, toBlkCnt = 0;
+	for(fromBlkCnt = 0 ; fromBlkCnt < WAY; fromBlkCnt ++){
+		for(toBlkCnt = 0 ; toBlkCnt < WAY; toBlkCnt ++){
+			if(toBlkCnt != fromBlkCnt){
+				computeCellGain(netarr, vertexarr, 'A' + fromBlkCnt, 'A' + toBlkCnt);
+			}
+		}
+	}
+/*
 	computeCellGain(netarr, vertexarr, 'A', 'B');
 	computeCellGain(netarr, vertexarr, 'B', 'A');
+*/
 	for(i = 0; ; i++){
 		int j;
 		tempmove = getCellWithMaxGain(netarr, vertexarr, 2);
@@ -228,8 +238,6 @@ int main(int argc, char ** argv){
 	}
 	printf("end of pass\n");
 	}
-//	goto start ;
-//	end:
 	return 0 ;
 }
 int printNetList(const N * narr){
@@ -272,17 +280,14 @@ int computeCellGain( N * narr, V * varr, char F, char T){
 			for( j = 0; j < varr[i].ldc; j++){
 				int Fcount = 0, Tcount = 0;
 				int index = varr[i].ld[j].index;
-				Fcount = narr[index].blkCnt[F - 'A'] ;//blockCount(narr + varr[i].ld[j].index, varr, F) ;
+				Fcount = narr[index].blkCnt[F - 'A'];
 				Tcount = narr[index].blkCnt[T - 'A'];
 				if(Fcount == 1){
 					varr[i].gain[T - 'A'] += 1;
-//					printf("haha +1 , node [%d] and net (%d)\n", i, varr[i].ld[j].index);
 				}else {if(Tcount == 0 ){
 					varr[i].gain[T - 'A'] -= 1;
-//					printf("oo:( -1 , node [%d] and net (%d)\n", i, varr[i].ld[j].index);
 				}}
 			}
-		//	printf("   Gain of move [%d] from %c to %c: %d\n", i, F, T, varr[i].gain[T - 'A'] );
 		}
 	}
 	return 0;
@@ -294,6 +299,15 @@ float ratioOfBlock(char block){
 
 	case 'B':
 	return 0.5 ;
+
+	case 'C':
+	return 0 ;
+	
+	case 'D':
+	return 0 ;
+	
+	case 'E':
+	return 0;
 	
 	default:
 	return -1.0;
