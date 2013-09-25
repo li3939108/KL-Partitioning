@@ -118,7 +118,7 @@ int main(int argc, char ** argv){
 				}
 				vertexarr[Vindex].ld[ldindex].index = index ;
 				vertexarr[Vindex].ld[ldindex].count += 1;
-				
+				//Initial Random Partitioning
 				if(Vindex / 11 == 0){
 					vertexarr[Vindex].block = 'A' ;
 				}else{
@@ -167,6 +167,7 @@ int main(int argc, char ** argv){
 	}
 ///////////////////////
 	start:
+	while(1){
 	computeCellGain(netarr, vertexarr, 'A', 'B');
 	computeCellGain(netarr, vertexarr, 'B', 'A');
 	for(i = 0; ; i++){
@@ -194,7 +195,8 @@ int main(int argc, char ** argv){
 		}
 	}
 	if(gainSumMax <= 0){// < 0 causes loop forever
-		goto end ;
+	//	goto end ;
+		break;
 	}
 	gainSum[i + 1] = -NODE_LIMIT ;
 	for(i = 0; gainSum[i] != -NODE_LIMIT; i++){
@@ -225,8 +227,9 @@ int main(int argc, char ** argv){
 		}
 	}
 	printf("end of pass\n");
-	goto start ;
-	end:
+	}
+//	goto start ;
+//	end:
 	return 0 ;
 }
 int printNetList(const N * narr){
