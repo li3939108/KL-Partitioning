@@ -42,10 +42,13 @@ typedef struct move M ;
 M movearr[NODE_LIMIT];
 V vertexarr[NODE_LIMIT];
 N netarr[NET_LIMIT];
+
+int TOTAL_NODES ;
+
 int gainSum[NODE_LIMIT] ;
 int balanceValue[NODE_LIMIT ];
 
-int sumsize ;
+int TOTAL_NETS ;
 
 int gainSumMax = -NODE_LIMIT;
 int gainSumMaxIndex = -1 ;
@@ -142,7 +145,16 @@ int main(int argc, char ** argv){
 				break;
 			}}}}}}
 		}
-		sumsize = index ;
+		TOTAL_NETS = index ;
+
+		int i,j = 0;
+		for( i = 0; i < NODE_LIMIT  ; i++){
+			if(vertexarr[i].ldc != 0){
+				j += 1;
+			}
+		}
+		TOTAL_NODES = j ;
+		printf("TOTAL NODE: %d\n", TOTAL_NODES);
 	}else{
 		fprintf(stderr, "too few arguments\n");
 		exit(EXIT_FAILURE);
@@ -182,7 +194,7 @@ int main(int argc, char ** argv){
 */
 	for(i = 0; ; i++){
 		int j;
-		tempmove = getCellWithMaxGain(netarr, vertexarr, 2);
+		tempmove = getCellWithMaxGain(netarr, vertexarr, WAY);
 		printGain(netarr, vertexarr);
 		gainSum[i] = (i - 1 >= 0 ? gainSum[i - 1] : 0) + vertexarr[tempmove.nodeIndex].gain[tempmove.block - 'A'] ;
 		balanceValue[i] = balanceCriterion(netarr, vertexarr, 20, vertexarr[tempmove.nodeIndex].block, tempmove.block);
