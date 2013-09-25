@@ -154,23 +154,15 @@ int main(int argc, char ** argv){
 			}
 		}
 		TOTAL_NODES = j ;
-		printf("TOTAL NODE: %d\n", TOTAL_NODES);
 	}else{
 		fprintf(stderr, "too few arguments\n");
 		exit(EXIT_FAILURE);
 	}
 
+	printNetList(netarr);
+	printNodeList(vertexarr);
 	int i = 0;
 	
-	printNetList(netarr);
-	for( i = 1; vertexarr[i].ldc != 0 ; i++){
-		int j = 0 ;
-		printf("Node %d(%d)[%c]: ", i, vertexarr[i].ldc, vertexarr[i].block);
-		for(j = 0; j < vertexarr[i].ldc; j++){
-			printf("%d(%d) ", vertexarr[i].ld[j].index, vertexarr[i].ld[j].count);
-		} 
-		putchar('\n');
-	}
 	for(i = 1; netarr[i].ldsc != 0; i++){
 		int j ;
 		for(j = 0; j < WAY; j++){
@@ -254,15 +246,31 @@ int main(int argc, char ** argv){
 }
 int printNetList(const N * narr){
 	int i ;
-	for( i = 1; netarr[i].ldc != 0 ; i++){
-		int j = 0;
-		printf("Net %d(%d): ", i, netarr[i].ldc);
-		for(j = 0; j < netarr[i].ldc; j++){
-			printf("%d(%d) ", netarr[i].ld[j].index, netarr[i].ld[j].count);
-		} 
-		putchar('\n');
+	for( i = 0; i <= TOTAL_NETS ; i++){
+		if(narr[i].ldc != 0){ 
+			int j = 0;
+			printf("Net %d(%d): ", i, narr[i].ldc);
+			for(j = 0; j < narr[i].ldc; j++){
+				printf("%d(%d) ", narr[i].ld[j].index, narr[i].ld[j].count);
+			} 
+			putchar('\n');
+		}
 	}
 	return 0 ;
+}
+int printNodeList(const V * varr){
+	int i ;
+	for( i = 0; i <= TOTAL_NODES ; i++){
+		if(varr[i].ldc != 0){
+			int j = 0 ;
+			printf("Node %d(%d)[%c]: ", i, varr[i].ldc, varr[i].block);
+			for(j = 0; j < varr[i].ldc; j++){
+				printf("%d(%d) ", varr[i].ld[j].index, varr[i].ld[j].count);
+			} 
+			putchar('\n');
+		}
+	}
+	return 0;
 }
 int printGain(const N * narr, const V * varr){
 	int i ;
