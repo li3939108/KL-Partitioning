@@ -26,10 +26,10 @@ struct vertex {
 };
 typedef struct vertex V;
 struct net{
-	int ldsc ;
-	int ldc; 
-	int blkCnt[BLOCK_LIMIT];
-	LC* ld;
+	int ldsc ; //count of edges on this net
+	int ldc; //count of nodes on this net
+	int blkCnt[BLOCK_LIMIT];// count of nodes on this net and on a block
+	LC* ld;// nodes sequence
 };
 typedef struct net N;
 
@@ -58,6 +58,23 @@ M  getCellWithMaxGain(const N * narr, const V * varr, int way);
 int blockCount(const N * netN , const V * varr, char block);
 int balanceCriterion(const N * narr, const V * varr, int V, char F, char T);
 int printNetList(const N * narr);
+
+int computeNetCut(N * narr, V * varr, int way){
+	int i;
+	int sumCnt = 0;
+	for (i = 0; i <= TOTAL_NETS; i++){
+		if(narr[i].ldc != 0){//not a empty net or nonexist net
+			int j , cnt = -1; //net on 2 blocks has 1 net-cut, net on 3 blocks has 2 net-cut ... 
+			for (j = 0; j < way; j++){
+				if(narr[i].blkCnt[ j] > 0){
+					cnt += 1;
+				}
+			}
+			sumCnt += cnt ;	
+		}
+	}
+	return sumCnt ;
+}
 
 int main(int argc, char ** argv){
 	M tempmove ;
@@ -122,11 +139,12 @@ int main(int argc, char ** argv){
 				vertexarr[Vindex].ld[ldindex].index = index ;
 				vertexarr[Vindex].ld[ldindex].count += 1;
 				//Initial Random Partitioning
-				if(Vindex / 11 == 0){
-					vertexarr[Vindex].block = 'A' ;
-				}else{
-					vertexarr[Vindex].block = 'B' ;
-				}
+				/*
+				 * if(Vindex % 2 == 0){
+				 * if(Vindex / 11 == 0){
+				 * if(((Vindex - 1) / 5 )% 2){
+				 */
+				vertexarr[Vindex].block = 'A' + (Vindex - 1) % WAY ;
 				break ;
 
 				default:
@@ -162,17 +180,17 @@ int main(int argc, char ** argv){
 	printNetList(netarr);
 	printNodeList(vertexarr);
 	int i = 0;
-	
+///////////////////////
+	while(1){
+	int fromBlkCnt = 0, toBlkCnt = 0;
+	//Calculate the nodes of a certain net on a certain block
 	for(i = 1; netarr[i].ldsc != 0; i++){
 		int j ;
 		for(j = 0; j < WAY; j++){
 			netarr[i].blkCnt[j] = blockCount(netarr + i, vertexarr, j + 'A');
 		}
 	}
-///////////////////////
-	start:
-	while(1){
-	int fromBlkCnt = 0, toBlkCnt = 0;
+	printf("sumNetCut %d\n\n\n", computeNetCut( netarr, vertexarr, WAY) );
 	for(fromBlkCnt = 0 ; fromBlkCnt < WAY; fromBlkCnt ++){
 		for(toBlkCnt = 0 ; toBlkCnt < WAY; toBlkCnt ++){
 			if(toBlkCnt != fromBlkCnt){
@@ -180,16 +198,12 @@ int main(int argc, char ** argv){
 			}
 		}
 	}
-/*
-	computeCellGain(netarr, vertexarr, 'A', 'B');
-	computeCellGain(netarr, vertexarr, 'B', 'A');
-*/
 	for(i = 0; ; i++){
 		int j;
-		tempmove = getCellWithMaxGain(netarr, vertexarr, WAY);
 		printGain(netarr, vertexarr);
+		tempmove = getCellWithMaxGain(netarr, vertexarr, WAY);
 		gainSum[i] = (i - 1 >= 0 ? gainSum[i - 1] : 0) + vertexarr[tempmove.nodeIndex].gain[tempmove.block - 'A'] ;
-		balanceValue[i] = balanceCriterion(netarr, vertexarr, 20, vertexarr[tempmove.nodeIndex].block, tempmove.block);
+		balanceValue[i] = balanceCriterion(netarr, vertexarr, TOTAL_NODES, vertexarr[tempmove.nodeIndex].block, tempmove.block);
 		if(gainSum[i] > gainSumMax){
 			gainSumMax = gainSum[i] ;
 			gainSumMaxIndex = i ;
@@ -209,7 +223,6 @@ int main(int argc, char ** argv){
 		}
 	}
 	if(gainSumMax <= 0){// < 0 causes loop forever
-	//	goto end ;
 		break;
 	}
 	gainSum[i + 1] = -NODE_LIMIT ;
@@ -233,12 +246,6 @@ int main(int argc, char ** argv){
 			printf("%d(%d) ", vertexarr[i].ld[j].index, vertexarr[i].ld[j].count);
 		} 
 		putchar('\n');
-	}
-	for(i = 1; netarr[i].ldsc != 0; i++){
-		int j ;
-		for(j = 0; j < WAY; j++){
-			netarr[i].blkCnt[j] = blockCount(netarr + i, vertexarr, j + 'A');
-		}
 	}
 	printf("end of pass\n");
 	}
@@ -275,8 +282,11 @@ int printNodeList(const V * varr){
 int printGain(const N * narr, const V * varr){
 	int i ;
 	for( i = 1; varr[i].block != 0 ; i++){
-		if(!varr[i].locked){
-			printf("   Gain of move [%d] from %c : %d\n", i, varr[i].block, varr[i].gain[!(varr[i].block - 'A')] );
+		int j = 0;
+		for( j = 0 ; j < WAY ; j++){
+			if( j != varr[i].block - 'A'){
+				printf("   Gain of move [%d] from %c to %c: %d\n", i, varr[i].block, j + 'A', varr[i].gain[j] );
+			}
 		}
 	}
 
@@ -384,11 +394,11 @@ M getCellWithMaxGain(const N * narr, const V * varr, int way){
 		if(varr[i].locked){continue;}
 		for(j = 0;j < way ; j++){
 			if( j == varr[i].block - 'A'){continue;}
-			if(varr[i].gain[j] > maxGain && balanceCriterion(narr, varr, 20, varr[i].block, j + 'A') ){
+			if(varr[i].gain[j] > maxGain && balanceCriterion(narr, varr, TOTAL_NODES, varr[i].block, j + 'A') ){
 				maxGain = varr[i].gain[j] ;
 				maxIndex = i ;
 				maxBlock = j + 'A'; 
-			}else{if(varr[i].gain[j] == maxGain && balanceCriterion(narr, varr, 20, varr[i].block, j + 'A')){
+			}else{if(varr[i].gain[j] == maxGain && balanceCriterion(narr, varr, TOTAL_NODES, varr[i].block, j + 'A')){
 				if(sizeOfBlock(narr, varr, varr[i].block) - sizeOfBlock(narr, varr, j - 'A') > 
 				sizeOfBlock(narr, varr, varr[maxIndex].block) - sizeOfBlock(narr, varr, maxBlock)){
 					maxIndex = i ;
