@@ -6,6 +6,11 @@
 #define NET_LIMIT 10000
 #define BLOCK_LIMIT 5
 #define WAY 2
+float RATIO[WAY] = {0.5, 0.5} ;
+//float RATIO[WAY] = {0.2, 0.2, 0.2, 0.2, 0.2};
+//float RATIO[WAY] = {0.5, 0.333333, 0.1666666};
+
+
 struct gain{
 	char T ;
 	int g ;
@@ -28,7 +33,7 @@ typedef struct vertex V;
 struct net{
 	int ldsc ; //count of edges on this net
 	int ldc; //count of nodes on this net
-	int blkCnt[BLOCK_LIMIT];// count of nodes on this net and on a block
+	int blkCnt[BLOCK_LIMIT];// count of nodes on a block
 	LC* ld;// nodes sequence
 };
 typedef struct net N;
@@ -44,11 +49,12 @@ V vertexarr[NODE_LIMIT];
 N netarr[NET_LIMIT];
 
 int TOTAL_NODES ;
+int TOTAL_NETS ;
+
 
 int gainSum[NODE_LIMIT] ;
 int balanceValue[NODE_LIMIT ];
 
-int TOTAL_NETS ;
 
 int gainSumMax = -NODE_LIMIT;
 int gainSumMaxIndex = -1 ;
@@ -87,6 +93,9 @@ int main(int argc, char ** argv){
 		int index, Vindex ; 
 		int ldindex = 0 ;
 		input = fopen(argv[1], "r");
+		/*
+		 * Read the input
+		 */
 		for(;;){
 			char c = fgetc(input);
 			int number ;
@@ -108,10 +117,10 @@ int main(int argc, char ** argv){
 
 				case 2:
 				ldindex =  netarr[index].ldc - 1;
-				for(i = ldindex ; i >= 0  ; i--){
+				for(i = ldindex ; i >= 0 ; i--){
 					if(netarr[index].ld[i].index == number){
 						ldindex = i  ;
-						break;
+						break ;
 					}
 				}
 				if(i == -1){
@@ -138,13 +147,10 @@ int main(int argc, char ** argv){
 				}
 				vertexarr[Vindex].ld[ldindex].index = index ;
 				vertexarr[Vindex].ld[ldindex].count += 1;
-				//Initial Random Partitioning
 				/*
-				 * if(Vindex % 2 == 0){
-				 * if(Vindex / 11 == 0){
-				 * if(((Vindex - 1) / 5 )% 2){
+				 * Initial Random Partitioning
 				 */
-				vertexarr[Vindex].block = 'A' + (Vindex - 1) % WAY ;
+				vertexarr[Vindex].block =(Vindex - 1) % WAY + 'A';
 				break ;
 
 				default:
@@ -164,7 +170,9 @@ int main(int argc, char ** argv){
 			}}}}}}
 		}
 		TOTAL_NETS = index ;
-
+		/*
+		 * Calculate the total nodes
+		 */
 		int i,j = 0;
 		for( i = 0; i < NODE_LIMIT  ; i++){
 			if(vertexarr[i].ldc != 0){
@@ -181,6 +189,9 @@ int main(int argc, char ** argv){
 	printNodeList(vertexarr);
 	int i = 0;
 ///////////////////////
+	/*
+	 * Main loop of the F-M heuristic
+	 */
 	while(1){
 	int fromBlkCnt = 0, toBlkCnt = 0;
 	//Calculate the nodes of a certain net on a certain block
@@ -198,6 +209,9 @@ int main(int argc, char ** argv){
 			}
 		}
 	}
+	/*
+	 * A pass
+	 */
 	for(i = 0; ; i++){
 		int j;
 		printGain(netarr, vertexarr);
@@ -222,7 +236,7 @@ int main(int argc, char ** argv){
 			updateGains(netarr, vertexarr, movearr + i);
 		}
 	}
-	if(gainSumMax <= 0){// < 0 causes loop forever
+	if(gainSumMax <= 0){
 		break;
 	}
 	gainSum[i + 1] = -NODE_LIMIT ;
@@ -230,6 +244,9 @@ int main(int argc, char ** argv){
 		printf("gainsum [%d] is %d\n", i, gainSum[i]);
 	}
 	printf("max gain sum [%d] %d \n",gainSumMaxIndex, gainSum[gainSumMaxIndex] );
+	/*
+	 * Make the move permanent
+	 */
 	for(i = 0; i <= gainSumMaxIndex; i++){
 		vertexarr[movearr[i].nodeIndex].block = movearr[i].block ;
 	}
@@ -283,6 +300,7 @@ int printGain(const N * narr, const V * varr){
 	int i ;
 	for( i = 1; varr[i].block != 0 ; i++){
 		int j = 0;
+		if( varr[i].locked ){continue;}
 		for( j = 0 ; j < WAY ; j++){
 			if( j != varr[i].block - 'A'){
 				printf("   Gain of move [%d] from %c to %c: %d\n", i, varr[i].block, j + 'A', varr[i].gain[j] );
@@ -312,36 +330,20 @@ int computeCellGain( N * narr, V * varr, char F, char T){
 				int index = varr[i].ld[j].index;
 				Fcount = narr[index].blkCnt[F - 'A'];
 				Tcount = narr[index].blkCnt[T - 'A'];
-				if(Fcount == 1){
+				if(Fcount == 1 ){
+					int j ;
 					varr[i].gain[T - 'A'] += 1;
-				}else {if(Tcount == 0 ){
+				}
+				if(Tcount == 0 ){
 					varr[i].gain[T - 'A'] -= 1;
-				}}
+				}
 			}
 		}
 	}
 	return 0;
 }
 float ratioOfBlock(char block){
-	switch(block){
-	case 'A':
-	return 0.5 ;
-
-	case 'B':
-	return 0.5 ;
-
-	case 'C':
-	return 0 ;
-	
-	case 'D':
-	return 0 ;
-	
-	case 'E':
-	return 0;
-	
-	default:
-	return -1.0;
-	}
+	return RATIO[block - 'A'];
 }
 int sizeOfBlock(const N * narr, const V * varr, char block){
 	int i , count = 0;
@@ -358,6 +360,9 @@ int sizeOfBlock(const N * narr, const V * varr, char block){
 	}
 	return count ;
 }
+/*
+ * calculating the number of free cells
+ */
 int freeCells(const V * varr){
 	int i , count = 0;
 	for(i = 1; varr[i].block != 0; i++){
@@ -367,24 +372,23 @@ int freeCells(const V * varr){
 	}
 	return count  ;
 }
+/*
+ * check if a move meets the balance criterion
+ */
 int balanceCriterion(const N * narr, const V * varr, int V, char F, char T){
-	//printf("freeCells %d\n", freeCells(varr));
-	/*
-	freeCells(varr)/5
-        freeCells(varr)/5
-        freeCells(varr)/5
-        freeCells(varr)/5
-	*/
 	if( 
-	ratioOfBlock(F) * V - ( + 1) <= sizeOfBlock(narr, varr, F) - 1 &&
-	ratioOfBlock(F) * V + ( + 1)>= sizeOfBlock(narr, varr, F) - 1&&
-	ratioOfBlock(T) * V - ( + 1) <= sizeOfBlock(narr, varr, T) + 1&&
-	ratioOfBlock(T) * V + ( + 1) >= sizeOfBlock(narr, varr, T) + 1){
+	ratioOfBlock(F) * V - (freeCells(varr) / (TOTAL_NODES / 2 + 1) ) <= sizeOfBlock(narr, varr, F) - 1 &&
+	ratioOfBlock(F) * V + (freeCells(varr) / (TOTAL_NODES / 2 + 1) )>= sizeOfBlock(narr, varr, F) - 1&&
+	ratioOfBlock(T) * V - (freeCells(varr) / (TOTAL_NODES / 2 + 1) ) <= sizeOfBlock(narr, varr, T) + 1&&
+	ratioOfBlock(T) * V + (freeCells(varr) / (TOTAL_NODES / 2 + 1) ) >= sizeOfBlock(narr, varr, T) + 1){
 		return NODE_LIMIT - abs(ratioOfBlock(F) * V - (sizeOfBlock(narr, varr, F) - 1)) - abs(ratioOfBlock(F) * V - (sizeOfBlock(narr, varr, T) + 1)) ;
 	}else{
 		return 0;
 	}
 }
+/*
+ * return a max-gain move 
+ */
 M getCellWithMaxGain(const N * narr, const V * varr, int way){
 	int i ,j;
 	int maxGain = -NET_LIMIT, maxIndex = 0;
@@ -412,6 +416,10 @@ M getCellWithMaxGain(const N * narr, const V * varr, int way){
 	
 	return move;
 }
+/*
+ * update the gains after a move 
+ * and update the blkCnt on related net
+ */
 int updateGains(N * narr, V * varr, M * move){
 	int i ;
 	for (i = 0 ; i < varr[move->nodeIndex].ldc; i++){
@@ -430,9 +438,11 @@ int updateGains(N * narr, V * varr, M * move){
 			}
 		}else{if(Tcount == 1){
 			for(j = 0; j< narr[netIndex].ldc; j++){
-				int index = narr[netIndex].ld[j].index ;
+				int index = narr[netIndex].ld[j].index , k;
 				if(varr[index].locked||varr[index].block != T ){continue;}
-				varr[index].gain[F - 'A'] -= 1;
+				for(k = 0; k < WAY; k++){
+					if(k != T - 'A'){varr[index].gain[k] -= 1;}//
+				}
 				printf("[%d] - 1\n", index );
 			}
 		}}
@@ -449,9 +459,11 @@ int updateGains(N * narr, V * varr, M * move){
 			}
 		}else{if(Fcount == 1){
 			for(j = 0; j< narr[netIndex].ldc; j++){
-				int index = narr[netIndex].ld[j].index ;
+				int index = narr[netIndex].ld[j].index , k;
 				if(varr[index].locked || varr[index].block != F ){continue;}
-				varr[index].gain[T - 'A'] += 1;
+				for(k = 0; k < WAY; k++){
+					if(k != F - 'A'){varr[index].gain[k] += 1;}//
+				}
 				printf("[%d] + 1\n", index );
 			}
 		}}
