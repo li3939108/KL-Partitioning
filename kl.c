@@ -5,6 +5,7 @@
 #define NODE_LIMIT 10000
 #define NET_LIMIT 10000
 #define BLOCK_LIMIT 5
+
 int WAY = 2;
 int WEIGHT[BLOCK_LIMIT] = {1, 1, 0, 0 ,0} ;
 int WEIGHT_SUM = 2;
