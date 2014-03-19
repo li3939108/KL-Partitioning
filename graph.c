@@ -1,6 +1,7 @@
 #define __GRAPH_FUN__
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <math.h>
 #include <time.h>
 #include "graph.h"
@@ -71,7 +72,7 @@ void pg(Graph *g){
 Graph *gen(int D, int V){
 	Vertex *sets[3][V], *v1 = NULL, *v2 = NULL;
 	int dgr[3] = {-1, 0, 1}, len[3] = {0, 0, 0}, min_index, new_index, i, j ;
-	if( D * V > V * (V - 1)){
+	if( D  > V - 1){
 		perror("No such graph: total degree should be less than of equal to 2 x maximal number of edge") ;
 		exit(EXIT_FAILURE) ;
 	}
@@ -85,9 +86,7 @@ Graph *gen(int D, int V){
 		int v = rand() % (V - len[0]), l, d, pl  ;
 		if( v / len[ min_index ] == 0){
 			v1 = sets[min_index][v] ;
-			for(i = v; i < len[min_index] - 1; i++){
-				sets[min_index][i] = sets[min_index][i + 1] ;
-			}
+			memmove(sets[min_index] + v, sets[min_index] + v + 1, (len[min_index] - v - 1) * sizeof(Vertex *)) ;
 			len[min_index] -= 1 ;//pop (v)
 			if(len[min_index] == 0){
 				min_index = ! (min_index - 1) + 1;
@@ -96,9 +95,7 @@ Graph *gen(int D, int V){
 			new_index = ! (min_index - 1) + 1 ;
 			v -= len[min_index] ;	
 			v1 = sets[new_index][v] ;
-			for(i = v; i < len[new_index] - 1; i++){
-				sets[new_index][i] = sets[new_index][i + 1] ;
-			}
+			memmove(sets[new_index] + v, sets[new_index] + v + 1, (len[new_index] - v - 1) * sizeof(Vertex *)) ;
 			len[new_index] -= 1 ;//pop (v)
 		}
 		l = D - v1->degree ;
@@ -110,10 +107,8 @@ Graph *gen(int D, int V){
 				for(i = 0; i < l; i++){
 					v = rand() % (len[min_index] - pl) ;
 					v2 = sets[min_index][v] ;
-					for(j = v; j < len[min_index]; j++){
-						sets[min_index][j] = sets[min_index][j + 1] ;
-					}
-					len[min_index] -= 1;//pop(v)
+					memmove(sets[min_index] + v, sets[min_index] + v + 1, (len[min_index] - v - 1) * sizeof(Vertex *) ) ;
+					len[min_index] -= 1 ;
 					weight = 1 + rand() % MAX_BANDWIDTH ;
 					add_adjacency_vertex(v2, v1->label, weight);
 					add_adjacency_vertex(v1, v2->label, weight);
@@ -131,9 +126,7 @@ Graph *gen(int D, int V){
 				for (i = 0; i < untouched_len; i++){
 					v = rand() % (len[min_index] - pl) ;
 					v2 = sets[min_index][v] ;
-					for(j = v; j < len[min_index]; j++){
-						sets[min_index][j] = sets[min_index][j + 1] ;
-					}
+					memmove(sets[min_index] + v, sets[min_index] + v + 1, (len[min_index] - v - 1) * sizeof(Vertex *) ) ;
 					len[min_index] -= 1;//pop(v)
 					weight = 1 + rand() % MAX_BANDWIDTH ;
 					add_adjacency_vertex(v2, v1->label, weight);
@@ -163,15 +156,24 @@ Graph *gen(int D, int V){
 		return new_graph(V, sets[0]) ;
 	}
 }
+void edges(Graph * G){
+	if(G->edge_list != NULL){
+
+	}else{
+		
+		edges(G) ;
+	}
+}
 int main(){
 	Vertex *v1 = new_vertex(3), *v2 = new_vertex(4) ;
 	Graph *G ;
+//	int a[3][4] = {{1, 2, 3, 4}, {3, 4, 5, 6}, {7, 8, 9, 10}};
 	add_adjacency_vertex(v1, v2->label, 30);
 	add_adjacency_vertex(v2, v1->label, 30);
 	pv(v1);pv(v2);
 	free_vertex(v1);
 	free_vertex(v2);
-	G = gen(3, 1000);
+	G = gen(6, 50000);
 	pg(G);
 	free_graph(G);
 }
