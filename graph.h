@@ -26,5 +26,6 @@ extern void add_adjacency_vertex(Vertex *v, int label, int weight) ;
 extern Graph *gen(int D, int V) ;
 extern void pg(Graph *) ;
 extern void pv(Vertex *) ;
+extern void edges(Graph *) ;
 
 #endif
