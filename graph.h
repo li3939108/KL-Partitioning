@@ -1,0 +1,29 @@
+#define MAX_BANDWIDTH 5000
+
+typedef struct _Vertex{
+	int degree ;
+	int label ;
+	int rank ;
+	int **list;//[label, weight] pair
+	struct _Vertex *parent ;
+} Vertex;
+
+typedef struct _Graph{
+	int V ;
+	int **edge_list ; //[label, weight] pair
+	Vertex **adj_list ;
+} Graph;
+
+#ifndef __GRAPH_FUN__
+#define __GRAPH_FUN__
+
+extern Graph *new_graph(int V, Vertex *vertex_list[]) ;
+extern Vertex *new_vertex(int label) ;
+extern void free_vertex(Vertex *v);
+extern void free_graph(Graph *G);
+extern void add_adjacency_vertex(Vertex *v, int label, int weight) ;
+extern Graph *gen(int D, int V) ;
+extern void pg(Graph *) ;
+extern void pv(Vertex *) ;
+
+#endif
