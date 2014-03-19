@@ -10,7 +10,8 @@ typedef struct _Vertex{
 
 typedef struct _Graph{
 	int V ;
-	int **edge_list ; //[label, weight] pair
+	int E ;
+	int **edge_list ; //[label, v1, v2, weight] pair
 	Vertex **adj_list ;
 } Graph;
 

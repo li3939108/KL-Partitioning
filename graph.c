@@ -10,6 +10,7 @@ Graph *new_graph(int V, Vertex *vertex_list[]){
 	int i = 0;
 	Graph * G = (Graph *)malloc( sizeof (Graph) ) ;
 	G->V = V ;
+	G->E = 0 ;
 	G->adj_list = (Vertex **)calloc( V + 1, sizeof (Vertex *)) ;
 	for( i = 0; i < G->V ; i++){
 		G->adj_list[ vertex_list[i]->label ] = vertex_list[ i  ] ;
@@ -157,10 +158,29 @@ Graph *gen(int D, int V){
 	}
 }
 void edges(Graph * G){
+	int i, j;
 	if(G->edge_list != NULL){
-
+		printf ("%d  %d\n", G->V, G->E) ;		
+		for(i = 1; i <= G->E; i++){
+			printf("%d %d\n", G->edge_list[i][1], G->edge_list[i][2]) ;
+		}
 	}else{
-		
+		for( i = 1; i <= G->V; i++){
+			Vertex *v = G->adj_list[i] ;
+			for( j = 0; j < v->degree; j++){
+				if(v->label < v->list[j][0]){
+					int *e = (int *)calloc(4, sizeof(int)) ;
+
+					G->E += 1 ;
+					G->edge_list = realloc(G->edge_list, (G->E + 1)* sizeof(int *)); 		
+					e[0] = G->E ;
+					e[1] = v->label ;
+					e[2] = v->list[j][0] ;
+					e[3] = v->list[j][1] ;
+					G->edge_list[G->E ] = e ;					
+				}
+			}
+		}
 		edges(G) ;
 	}
 }
@@ -173,7 +193,7 @@ int main(){
 	pv(v1);pv(v2);
 	free_vertex(v1);
 	free_vertex(v2);
-	G = gen(6, 50000);
-	pg(G);
+	G = gen(6, 50);
+	edges(G) ;
 	free_graph(G);
 }
