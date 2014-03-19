@@ -31,20 +31,29 @@ Vertex *new_vertex(int label){
 void free_vertex(Vertex *v){
 	int i ;
 	if(v == NULL){return ;}
-	for(i = 0; i< v->degree; i++){
-		free (v->list[i]);	
+	if(v->list != NULL){
+		for(i = 0; i< v->degree; i++){
+			free (v->list[i]);	
+		}
+		free(v->list) ;
 	}
-	free(v->list) ;
 	free(v) ;
 }
 void free_graph(Graph *G){
 	int i = 0;
 	if(G == NULL){return ;}
-	for(i = 0; i <= G->V; i++){
-		free_vertex(G->adj_list[i]); 
+	if(G->adj_list != NULL){
+		for(i = 0; i <= G->V; i++){
+			free_vertex(G->adj_list[i]); 
+		}
+		free(G->adj_list) ;
 	}
-	free(G->adj_list) ;
-	free(G->edge_list) ;
+	if(G->edge_list != NULL){
+		for(i = 0; i <= G->E; i++){
+			free(G->edge_list[i]) ;
+		}
+		free(G->edge_list) ;
+	}
 	free(G);
 }
 void add_adjacency_vertex(Vertex *v, int label, int weight) {
@@ -146,7 +155,7 @@ Graph *gen(int D, int V){
 				min_index = new_index ;
 			}
 		}
-		sets[0][len[0] ] = v1 ;
+		sets[0][ len[0] ] = v1 ;
 		len[0] += 1 ;
 	}
 	if(len[0] == V){
@@ -170,17 +179,17 @@ void edges(Graph * G){
 			for( j = 0; j < v->degree; j++){
 				if(v->label < v->list[j][0]){
 					int *e = (int *)calloc(4, sizeof(int)) ;
-
 					G->E += 1 ;
 					G->edge_list = realloc(G->edge_list, (G->E + 1)* sizeof(int *)); 		
 					e[0] = G->E ;
 					e[1] = v->label ;
 					e[2] = v->list[j][0] ;
 					e[3] = v->list[j][1] ;
-					G->edge_list[G->E ] = e ;					
+					G->edge_list[ G->E ] = e ;	
 				}
 			}
 		}
+		G->edge_list[0] = NULL ;
 		edges(G) ;
 	}
 }
@@ -193,7 +202,8 @@ int main(){
 	pv(v1);pv(v2);
 	free_vertex(v1);
 	free_vertex(v2);
-	G = gen(6, 50);
+	G = gen(3, 10);
 	edges(G) ;
+//	pg(G);
 	free_graph(G);
 }

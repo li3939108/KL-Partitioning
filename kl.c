@@ -1,15 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "graph.h"
 
-
-typedef struct _Vertex{
-	int degree ;
-	int label ;
-	int rank ;
-	int (*list)[2] ;
-	struct _Vertex *parent ;
-} Vertex;
 
 
 int main(int argc, char ** argv){
@@ -29,7 +22,7 @@ int main(int argc, char ** argv){
 			num1 = atoi( strtok_r(line, " ", &saveptr) );
 			num2 = atoi( strtok_r(NULL, " ", &saveptr) );
 			printf("two numbers read: %d %d\n", num1, num2);
-	        }
+        }
 		free(line);
 	}
 }
