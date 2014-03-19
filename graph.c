@@ -12,11 +12,12 @@ Graph *new_graph(int V, Vertex *vertex_list[]){
 	G->V = V ;
 	G->E = 0 ;
 	G->adj_list = (Vertex **)calloc( V + 1, sizeof (Vertex *)) ;
+	G->edge_list = (int **)calloc(1, sizeof(int *)) ;
 	for( i = 0; i < G->V ; i++){
 		G->adj_list[ vertex_list[i]->label ] = vertex_list[ i  ] ;
 	}
 	G->adj_list[0] = NULL ;
-	G->edge_list = NULL;
+	G->edge_list[0] = NULL;
 	return G ;
 }
 Vertex *new_vertex(int label){
@@ -168,7 +169,7 @@ Graph *gen(int D, int V){
 }
 void edges(Graph * G){
 	int i, j;
-	if(G->edge_list != NULL){
+	if(G->edge_list != NULL && G->edge_list[0] != NULL){
 		printf ("%d  %d\n", G->V, G->E) ;		
 		for(i = 1; i <= G->E; i++){
 			printf("%d %d\n", G->edge_list[i][1], G->edge_list[i][2]) ;
@@ -193,6 +194,7 @@ void edges(Graph * G){
 		edges(G) ;
 	}
 }
+/*
 int main(){
 	Vertex *v1 = new_vertex(3), *v2 = new_vertex(4) ;
 	Graph *G ;
@@ -207,3 +209,4 @@ int main(){
 //	pg(G);
 	free_graph(G);
 }
+*/
