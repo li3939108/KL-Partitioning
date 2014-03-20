@@ -122,7 +122,7 @@ Graph *gen(int D, int V){
 					v2 = sets[min_index][v] ;
 					memmove(sets[min_index] + v, sets[min_index] + v + 1, (len[min_index] - v - 1) * sizeof(Vertex *) ) ;
 					len[min_index] -= 1 ;
-					weight = 1 + rand() % MAX_BANDWIDTH ;
+					weight = 1 + rand() % MAX_EDGE_WEIGHT ;
 					add_adjacency_vertex(v2, v1->label, weight);
 					add_adjacency_vertex(v1, v2->label, weight);
 					if(v2->degree == D){
@@ -141,7 +141,7 @@ Graph *gen(int D, int V){
 					v2 = sets[min_index][v] ;
 					memmove(sets[min_index] + v, sets[min_index] + v + 1, (len[min_index] - v - 1) * sizeof(Vertex *) ) ;
 					len[min_index] -= 1;//pop(v)
-					weight = 1 + rand() % MAX_BANDWIDTH ;
+					weight = 1 + rand() % MAX_EDGE_WEIGHT ;
 					add_adjacency_vertex(v2, v1->label, weight);
 					add_adjacency_vertex(v1, v2->label, weight);
 					if(v2->degree == D){

@@ -1,4 +1,4 @@
-#define MAX_BANDWIDTH 5000
+#define MAX_EDGE_WEIGHT 5000
 #include <stdio.h>
 
 

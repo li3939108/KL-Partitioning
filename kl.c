@@ -3,6 +3,16 @@
 #include <string.h>
 #include "graph.h"
 
+void input_gen(FILE *output, int D, int V){
+	Graph *G = gen(D, V) ;
+	if(output == NULL){
+		return ;
+	}
+	edges(G, output) ;
+	free_graph(G) ;
+	return ;
+}
+
 int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){
 	int 
 	(*cost)[G->V + 1] = (int (*)[G->V + 1])calloc(G->V + 1, sizeof *cost),//cost[G->V + 1][G->V + 1], 
@@ -181,7 +191,9 @@ int main(int argc, char ** argv){
 		Vertex **vlist, **a, **b ;
 		Graph *G, *G2 ;
 
-
+		output = fopen(argv[1], "w") ;
+		input_gen(output, 4, 1000) ;
+		fclose(output) ;
 
 		input = fopen(argv[1], "r");
 		if (input == NULL){
