@@ -81,7 +81,9 @@ void pg(Graph *g){
 	}
 }
 Graph *gen(int D, int V){
-	Vertex *sets[3][V], *v1 = NULL, *v2 = NULL;
+	Vertex 
+	*(*sets)[V] = (Vertex *(*)[V])calloc(3, sizeof *sets),
+	*v1 = NULL, *v2 = NULL;
 	int dgr[3] = {-1, 0, 1}, len[3] = {0, 0, 0}, min_index, new_index, i, j ;
 	if( D  > V - 1){
 		perror("No such graph: total degree should be less than of equal to 2 x maximal number of edge") ;
@@ -160,11 +162,15 @@ Graph *gen(int D, int V){
 		len[0] += 1 ;
 	}
 	if(len[0] == V){
-		return new_graph(V, sets[0]) ;
+		Graph *G = new_graph(V, sets[0]) ;
+		free(sets) ;
+		return G ;
 	}else{
 		perror("No such graph: Returned graph has a vertex with degree less than min_index") ;
-		sets[0][len[0] ] = sets[dgr[2] > dgr[1] ? 2 : 1][0] ;
-		return new_graph(V, sets[0]) ;
+		sets[0][len[0] ] = sets[min_index][0] ;
+		Graph *G = new_graph(V, sets[0]) ;
+		free(sets) ;
+		return G ;
 	}
 }
 void edges(Graph * G, FILE *output){
@@ -198,21 +204,4 @@ void edges(Graph * G, FILE *output){
 		edges(G, output) ;
 	}
 }
-/*
-int main(){
-//	Vertex *v1 = new_vertex(3), *v2 = new_vertex(4) ;
-	Graph *G ;
-//	int a[3][4] = {{1, 2, 3, 4}, {3, 4, 5, 6}, {7, 8, 9, 10}};
-//	add_adjacency_vertex(v1, v2->label, 30);
-//	add_adjacency_vertex(v2, v1->label, 30);
-//	pv(v1);pv(v2);
-//	free_vertex(v1);
-//	free_vertex(v2);
-	G = gen(3, 10);
-	edges(G, stdout) ;
-	pg(G);
-//	printf("%d", (int)(~0) << (sizeof(int) * 8 - 1)) ;
-	free_graph(G);
-}
 
-*/
