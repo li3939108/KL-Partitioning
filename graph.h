@@ -1,3 +1,6 @@
+#ifndef __GRAPH_H__
+#define __GRAPH_H__
+
 #define MAX_EDGE_WEIGHT 5000
 #include <stdio.h>
 
@@ -30,4 +33,5 @@ extern void pg(Graph *) ;
 extern void pv(Vertex *) ;
 extern void edges(Graph *, FILE* output) ;
 
+#endif
 #endif
