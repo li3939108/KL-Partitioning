@@ -4,12 +4,14 @@
 #include "graph.h"
 
 int cut(Graph *G, Vertex *a[], Vertex *b[]){
-	int cost[G->V + 1][G->V + 1], i, j, total_cost ;
-	char block[G->V + 1] ;
+	int 
+	(*cost)[G->V + 1] = (int (*)[G->V + 1])calloc(G->V + 1, sizeof *cost),//cost[G->V + 1][G->V + 1], 
+	i, j, total_cost ;
+	char *block = calloc(G->V + 1, sizeof *block) ; //block[G->V + 1] ;
 	Vertex *v1, *v2 ;
 
-	memset(cost, 0, sizeof(cost)) ;
-	memset(block, 0, sizeof(block)) ;
+	memset(cost, 0, (G->V + 1) * sizeof *cost) ;
+	memset(block, 0, (G->V + 1) * sizeof *block) ;
 	total_cost = 0 ;
 
 	for(i = 0; i < G->V / 2; i++){
@@ -43,23 +45,33 @@ int cut(Graph *G, Vertex *a[], Vertex *b[]){
 			}
 		}
 	}
+	free(cost);
+	free(block);
 	return total_cost >> 1 ;
 }
 
 void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	int minus_inf = (int)(~0) << (sizeof(int) * 8 - 1) ;
-	int d[G->V + 1], cost[G->V + 1][G->V + 1], gsum[G->V / 2 + 1], ex[G->V / 2 + 1][2], i, j, k, maxk, maxgain, locked[G->V + 1] ;
-	char block[G->V + 1] ;
+	int
+	*d = (int *)calloc(G->V + 1, sizeof *d ), //d[G->V + 1] 
+	(*cost)[G->V + 1] = (int (*)[G->V + 1])calloc(G->V + 1, sizeof *cost),//cost[G->V + 1][G->V + 1], 
+	*gsum = (int *)calloc(G->V / 2 + 1, sizeof *gsum), //gsum[G->V / 2 + 1], 
+	(*ex)[2] = (int (*)[2])calloc(G->V / 2 + 1, sizeof *ex),//ex[G->V / 2 + 1][2], 
+	*locked = (int *)calloc(G->V + 1, sizeof *locked), //locked[G->V + 1] ,
+	i, j, k, maxk, maxgain  ;
+
+	char *block = calloc(G->V + 1, sizeof *block) ; //block[G->V + 1] ;
 	Vertex *v1, *v2 ;
 
 	mainloop:
 	//Initialization
-	memset(d, 0, sizeof(d) ) ;
-	memset(gsum , 0, sizeof(gsum) ) ;
-	memset(ex, 0, sizeof(ex)) ;
-	memset(block, 0, sizeof(block)) ;
-	memset(cost, 0, sizeof(cost)) ;
-	memset(locked, 0, sizeof(locked)) ;
+	memset(d, 0, (G->V + 1) * sizeof *d)  ;
+	memset(cost, 0, (G->V + 1) * sizeof *cost) ;
+	memset(gsum , 0, (G->V / 2 + 1) * sizeof *gsum ) ;
+	memset(ex, 0, (G->V / 2 + 1) * sizeof *ex) ;
+	memset(block, 0, (G->V + 1) * sizeof *block) ;
+	memset(locked, 0, (G->V + 1) * sizeof *locked ) ;
+
 	gsum[0] = 0 ;
 	maxk = 0 ;
 	maxgain = minus_inf ;
@@ -149,6 +161,12 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	}
 
 	if(maxk == 0){
+		free(d) ;
+		free(cost);
+		free(gsum);
+		free(ex);
+		free(block) ;
+		free(locked);
 		return ;
 	}else{
 		for(i = 1; i <= maxk; i++){
@@ -163,7 +181,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 
 int main(int argc, char ** argv){
 	if(argc == 2){
-		FILE* input; //input file
+		FILE *input, *output; //input file
 		char *line = NULL;
 		size_t len = 0;
 		ssize_t read;
@@ -172,6 +190,14 @@ int main(int argc, char ** argv){
 		Graph *G, *G2 ;
 
 
+
+		output = fopen(argv[1], "w");
+		if (output == NULL){
+			exit(EXIT_FAILURE);}
+		G = gen(3, 4000);
+		edges(G, output);
+		free_graph(G);	
+		fclose(output) ;
 
 		input = fopen(argv[1], "r");
 		if (input == NULL){
@@ -182,7 +208,7 @@ int main(int argc, char ** argv){
 			char *saveptr ;
 			num1 = atoi( strtok_r(line, " ", &saveptr) );
 			num2 = atoi( strtok_r(NULL, " ", &saveptr) );
-			printf("two numbers read: %d %d\n", num1, num2);
+//			printf("two numbers read: %d %d\n", num1, num2);
 			if(line_n == 0){
 				V = num1 ;
 				E = num2 ;
@@ -223,27 +249,27 @@ int main(int argc, char ** argv){
 		//Graph G generated
 		
 		a = (Vertex **)calloc(V / 2, sizeof(Vertex *));		
-		printf("a:\n");
+//		printf("a:\n");
 		for(i = 0; i < V / 2; i++){
 			a[i] = G->adj_list[i + 1] ;
-			pv(a[i]);
+//			pv(a[i]);
 		}
 		b = (Vertex **)calloc(V - V / 2, sizeof(Vertex *));		
-		printf("b:\n");
+//		printf("b:\n");
 		for(i = 0; i < V - V / 2; i++){
 			b[i] = G->adj_list[V / 2 + i + 1] ;
-			pv(b[i]);
+//			pv(b[i]);
 		}
 		printf("cut size: %d \n", cut(G, a, b)) ;
 		partition(G, a, b);
 		printf("partitioned \n") ;
 		printf("a:\n");
 		for(i = 0; i < V / 2; i++){
-			pv(a[i]);
+//			pv(a[i]);
 		}
 		printf("b:\n");
 		for(i = 0; i < V - V / 2; i++){
-			pv(b[i]);
+//			pv(b[i]);
 		}
 		printf("cut size: %d \n", cut(G, a, b)) ;
 		free(a) ;
