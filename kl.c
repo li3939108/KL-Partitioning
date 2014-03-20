@@ -194,7 +194,7 @@ int main(int argc, char ** argv){
 		output = fopen(argv[1], "w");
 		if (output == NULL){
 			exit(EXIT_FAILURE);}
-		G = gen(3, 4000);
+		G = gen(3, 1000);
 		edges(G, output);
 		free_graph(G);	
 		fclose(output) ;
