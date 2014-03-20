@@ -1,9 +1,9 @@
 #define __GRAPH_FUN__
-#include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include "graph.h"
 
 Graph *new_graph(int V, Vertex *vertex_list[]){
@@ -167,12 +167,16 @@ Graph *gen(int D, int V){
 		return new_graph(V, sets[0]) ;
 	}
 }
-void edges(Graph * G){
+void edges(Graph * G, FILE *output){
 	int i, j;
-	if(G->edge_list != NULL && G->edge_list[0] != NULL){
-		printf ("%d  %d\n", G->V, G->E) ;		
-		for(i = 1; i <= G->E; i++){
-			printf("%d %d\n", G->edge_list[i][1], G->edge_list[i][2]) ;
+	if(G->E > 0 ){
+		if( output == NULL){
+			return ;
+		}else{
+			fprintf (output, "%d  %d\n", G->V, G->E) ;		
+			for(i = 1; i <= G->E; i++){
+				fprintf(output, "%d %d\n", G->edge_list[i][1], G->edge_list[i][2]) ;
+			}
 		}
 	}else{
 		for( i = 1; i <= G->V; i++){
@@ -181,7 +185,7 @@ void edges(Graph * G){
 				if(v->label < v->list[j][0]){
 					int *e = (int *)calloc(4, sizeof(int)) ;
 					G->E += 1 ;
-					G->edge_list = realloc(G->edge_list, (G->E + 1)* sizeof(int *)); 		
+					G->edge_list = (int **)realloc(G->edge_list, (G->E + 1)* sizeof(int *)); 		
 					e[0] = G->E ;
 					e[1] = v->label ;
 					e[2] = v->list[j][0] ;
@@ -191,22 +195,24 @@ void edges(Graph * G){
 			}
 		}
 		G->edge_list[0] = NULL ;
-		edges(G) ;
+		edges(G, output) ;
 	}
 }
 /*
 int main(){
-	Vertex *v1 = new_vertex(3), *v2 = new_vertex(4) ;
+//	Vertex *v1 = new_vertex(3), *v2 = new_vertex(4) ;
 	Graph *G ;
 //	int a[3][4] = {{1, 2, 3, 4}, {3, 4, 5, 6}, {7, 8, 9, 10}};
-	add_adjacency_vertex(v1, v2->label, 30);
-	add_adjacency_vertex(v2, v1->label, 30);
-	pv(v1);pv(v2);
-	free_vertex(v1);
-	free_vertex(v2);
+//	add_adjacency_vertex(v1, v2->label, 30);
+//	add_adjacency_vertex(v2, v1->label, 30);
+//	pv(v1);pv(v2);
+//	free_vertex(v1);
+//	free_vertex(v2);
 	G = gen(3, 10);
-	edges(G) ;
-//	pg(G);
+	edges(G, stdout) ;
+	pg(G);
+//	printf("%d", (int)(~0) << (sizeof(int) * 8 - 1)) ;
 	free_graph(G);
 }
+
 */
