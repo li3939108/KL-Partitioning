@@ -3,7 +3,7 @@
 #include <string.h>
 #include "graph.h"
 
-int cut(Graph *G, Vertex *a[], Vertex *b[]){
+int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){
 	int 
 	(*cost)[G->V + 1] = (int (*)[G->V + 1])calloc(G->V + 1, sizeof *cost),//cost[G->V + 1][G->V + 1], 
 	i, j, total_cost ;
@@ -19,6 +19,9 @@ int cut(Graph *G, Vertex *a[], Vertex *b[]){
 		block[ b[i]->label ] = 'b' ;
 	}	
 	block[ b[G->V - G->V / 2 - 1]->label ] = 'b' ;
+	if(output != NULL){
+		fprintf(output, "\nCutset: \n") ;
+	}
 
 	for(i = 0; i < G->V / 2; i++){
 		v1 = a[i] ;
@@ -27,27 +30,16 @@ int cut(Graph *G, Vertex *a[], Vertex *b[]){
 			cost[ v1->label ][ v1->list[j][0] ] = v1->list[j][1] ;
 			if(block[ v1->label ] != block[ v1->list[j][0] ]){
 				total_cost +=  v1->list[j][1] ;
-			}
-		}
-		for(j = 0; j < v2->degree; j++){
-			cost[ v2->label ][ v2->list[j][0] ] = v2->list[j][1] ;
-			if(block[ v2->label ] != block[ v2->list[j][0] ]){
-				total_cost +=  v2->list[j][1] ;
+				if(output != NULL){
+					fprintf(output, "%d %d\n", v1->label, v1->list[j][0]);
+				}
 			}
 		}
 	}
-	if( G->V - G->V / 2  != G->V / 2) {
-		v2 = b[G->V - G->V / 2 - 1] ;
-		for(j = 0; j < v2->degree; j++){
-			cost[ v2->label ][ v2->list[j][0] ] = v2->list[j][1] ;
-			if(block[ v2->label ] != block[ v2->list[j][0] ]){
-				total_cost +=  v2->list[j][1] ;
-			}
-		}
-	}
+
 	free(cost);
 	free(block);
-	return total_cost >> 1 ;
+	return total_cost  ;
 }
 
 void partition(Graph *G, Vertex *a[], Vertex *b[]){
@@ -191,14 +183,6 @@ int main(int argc, char ** argv){
 
 
 
-		output = fopen(argv[1], "w");
-		if (output == NULL){
-			exit(EXIT_FAILURE);}
-		G = gen(3, 1000);
-		edges(G, output);
-		free_graph(G);	
-		fclose(output) ;
-
 		input = fopen(argv[1], "r");
 		if (input == NULL){
 			exit(EXIT_FAILURE);}
@@ -260,18 +244,18 @@ int main(int argc, char ** argv){
 			b[i] = G->adj_list[V / 2 + i + 1] ;
 //			pv(b[i]);
 		}
-		printf("cut size: %d \n", cut(G, a, b)) ;
+		printf("Initial cut size: %d \n", cut(G, a, b, NULL)) ;
 		partition(G, a, b);
 		printf("partitioned \n") ;
 		printf("a:\n");
 		for(i = 0; i < V / 2; i++){
-//			pv(a[i]);
+			printf("%d ", a[i]->label) ;
 		}
-		printf("b:\n");
+		printf("\nb:\n");
 		for(i = 0; i < V - V / 2; i++){
-//			pv(b[i]);
+			printf("%d ", b[i]->label) ;
 		}
-		printf("cut size: %d \n", cut(G, a, b)) ;
+		printf("\ncut size: %d \n", cut(G, a, b, stdout)) ;
 		free(a) ;
 		free(b) ;
 		free_graph (G);
