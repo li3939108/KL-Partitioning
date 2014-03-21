@@ -41,7 +41,7 @@ int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){
 			if(block[ v1->label ] != block[ v1->list[j][0] ]){
 				total_cost +=  v1->list[j][1] ;
 				if(output != NULL){
-					fprintf(output, "%d %d\n", v1->label, v1->list[j][0]);
+					fprintf(output, "%d -- %d\n", v1->label, v1->list[j][0]);
 				}
 			}
 		}
