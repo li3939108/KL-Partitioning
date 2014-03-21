@@ -8,15 +8,15 @@
 typedef struct _Vertex{
 	int degree ;
 	int label ;
-	int rank ;
-	int **list;//[label, weight] pair
-	struct _Vertex *parent ;
+	int rank ;//for use with Make-Set-Find 
+	int (*list)[2];//[label, weight] 
+	struct _Vertex *parent ;//for use with Make-Set-Find
 } Vertex;
 
 typedef struct _Graph{
 	int V ;
 	int E ;
-	int **edge_list ; //[label, v1, v2, weight] pair
+	int (*edge_list)[4] ; //[label, v1, v2, weight] 
 	Vertex **adj_list ;
 } Graph;
 
