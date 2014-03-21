@@ -199,10 +199,13 @@ void edges(Graph * G, FILE *output){
 		edges(G, output) ;
 	}
 }
+/*
+ * uncomment this to see sample output
 int main(){
 	Graph *G ;
-	G = gen(3, 100);
+	G = gen(3, 1000);
 	pg(G);
 	free_graph(G);
 	return 0 ;
 }
+*/
