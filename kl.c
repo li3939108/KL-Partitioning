@@ -13,7 +13,12 @@ void input_gen(FILE *output, int D, int V){
 	return ;
 }
 
-int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){
+/*
+ * show the cut set info 
+ * print the cut set by edge pairs
+ * print the cut size
+ */
+int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){ 
 	int 
 	(*cost)[G->V + 1] = (int (*)[G->V + 1])calloc(G->V + 1, sizeof *cost),//cost[G->V + 1][G->V + 1], 
 	i, j, total_cost ;
