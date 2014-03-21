@@ -191,8 +191,8 @@ void edges(Graph * G, FILE *output){
 					G->edge_list = (int (*)[4])realloc(G->edge_list, (G->E + 1)* sizeof *(G->edge_list)); 		
 					G->edge_list[ G->E ][0] = G->E ;	
 					G->edge_list[ G->E ][1] = v->label ;	
-					G->edge_list[ G->E ][0] = v->list[j][0] ;	
-					G->edge_list[ G->E ][0] = v->list[j][1] ;	
+					G->edge_list[ G->E ][2] = v->list[j][0] ;	
+					G->edge_list[ G->E ][3] = v->list[j][1] ;	
 				}
 			}
 		}
@@ -200,7 +200,7 @@ void edges(Graph * G, FILE *output){
 	}
 }
 /*
- * uncomment this to see sample output
+ *uncomment this to see sample output
 int main(){
 	Graph *G ;
 	G = gen(3, 1000);

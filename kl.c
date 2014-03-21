@@ -17,7 +17,7 @@ int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){
 	int 
 	(*cost)[G->V + 1] = (int (*)[G->V + 1])calloc(G->V + 1, sizeof *cost),//cost[G->V + 1][G->V + 1], 
 	i, j, total_cost ;
-	char *block = calloc(G->V + 1, sizeof *block) ; //block[G->V + 1] ;
+	char *block = (char *)calloc(G->V + 1, sizeof *block) ; //block[G->V + 1] ;
 	Vertex *v1, *v2 ;
 
 	memset(cost, 0, (G->V + 1) * sizeof *cost) ;
@@ -60,9 +60,9 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	*gsum = (int *)calloc(G->V / 2 + 1, sizeof *gsum), //gsum[G->V / 2 + 1], 
 	(*ex)[2] = (int (*)[2])calloc(G->V / 2 + 1, sizeof *ex),//ex[G->V / 2 + 1][2], 
 	*locked = (int *)calloc(G->V + 1, sizeof *locked), //locked[G->V + 1] ,
-	i, j, k, maxk, maxgain  ;
+	i, j, k, maxk, maxgain, passes = 0  ;
 
-	char *block = calloc(G->V + 1, sizeof *block) ; //block[G->V + 1] ;
+	char *block = (char *)calloc(G->V + 1, sizeof *block) ; //block[G->V + 1] ;
 	Vertex *v1, *v2 ;
 
 	mainloop:
@@ -124,15 +124,17 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	for (k = 1; k <= G->V / 2; k++){
 		int to_be_locked[2], to_be_exchanged[2] ;
 		for(i = 0; i < G->V / 2 ; i++){
-			if (!locked[ a[i]->label ]) {
+			int a_i_label = a[i]->label ;
+			if (!locked[ a_i_label ]) {
 				for(j = 0; j < G->V - G->V / 2  ; j++){
-					if(!locked[ b[j]->label ]){
-						int gain = d[ a[i]->label ] + d[ b[j]->label ] - 2 * cost[ a[i]->label ][ b[j]->label ] ;
+					int b_j_label = b[j]->label ;
+					if(!locked[ b_j_label ]){
+						int gain = d[ a_i_label ] + d[ b_j_label ] - 2 * cost[ a_i_label ][ b_j_label ] ;
 						if( gain > maxgain ){
 							maxgain = gain ;
-							to_be_locked[0] = a[i]->label ;
+							to_be_locked[0] = a_i_label ;
 							to_be_exchanged[0] = i ;
-							to_be_locked[1] = b[j]->label ;
+							to_be_locked[1] = b_j_label ;
 							to_be_exchanged[1] = j ;
 						}
 					}
@@ -161,7 +163,6 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		}
 		maxgain = minus_inf ;
 	}
-
 	if(maxk == 0){
 		free(d) ;
 		free(cost);
@@ -169,8 +170,10 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		free(ex);
 		free(block) ;
 		free(locked);
+		printf("\npasses: %d \n", passes);
 		return ;
 	}else{
+		passes += 1 ;
 		for(i = 1; i <= maxk; i++){
 			Vertex *temp = a[ ex[i][0] ] ;
 			a[ ex[i][0] ] = b[ ex[i][1] ] ;
@@ -187,13 +190,16 @@ int main(int argc, char ** argv){
 		char *line = NULL;
 		size_t len = 0;
 		ssize_t read;
-		int line_n = 0, V, E, **elist, i, j ;
+		int line_n = 0, V, E, (*elist)[4], i, j ;
 		Vertex **vlist, **a, **b ;
 		Graph *G, *G2 ;
-
+/*
+ *Generate input by itself
+ *
 		output = fopen(argv[1], "w") ;
 		input_gen(output, 4, 1000) ;
 		fclose(output) ;
+*/
 
 		input = fopen(argv[1], "r");
 		if (input == NULL){
@@ -204,22 +210,19 @@ int main(int argc, char ** argv){
 			char *saveptr ;
 			num1 = atoi( strtok_r(line, " ", &saveptr) );
 			num2 = atoi( strtok_r(NULL, " ", &saveptr) );
-//			printf("two numbers read: %d %d\n", num1, num2);
 			if(line_n == 0){
 				V = num1 ;
 				E = num2 ;
 				vlist = (Vertex **)calloc(V + 1, sizeof(Vertex *)) ;
-				elist = (int **)calloc(E + 1, sizeof(int *)) ;
-				elist[0] = NULL ;
+				elist = (int (*)[4])calloc(E + 1, sizeof *elist) ;
+				memset(elist, 0, sizeof *elist) ;
 				vlist[0] = NULL ;
 			}else{
-				int *pair = (int *)calloc(4, sizeof(int)) ;
 				Vertex *v1, *v2 ;
-				pair[0] = line_n ;
-				pair[1] = num1 ;
-				pair[2] = num2 ;
-				pair[3] = 1 ;
-				elist[line_n] = pair ;
+				elist[line_n][0] = line_n ;
+				elist[line_n][1] = num1 ;
+				elist[line_n][2] = num2 ;
+				elist[line_n][3] = 1 ;
 				v1 = vlist[num1] ;
 				v2 = vlist[num2] ;
 				if(v1 == NULL){
