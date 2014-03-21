@@ -53,41 +53,41 @@ int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){
 }
 
 void partition(Graph *G, Vertex *a[], Vertex *b[]){
-	int minus_inf = (int)(~0) << (sizeof(int) * 8 - 1) ;
+	int minus_inf = (int)(~0) << (sizeof(int) * 8 - 1), V = G->V  ;
 	int
-	*d = (int *)calloc(G->V + 1, sizeof *d ), //d[G->V + 1] 
-	(*cost)[G->V + 1] = (int (*)[G->V + 1])calloc(G->V + 1, sizeof *cost),//cost[G->V + 1][G->V + 1], 
-	*gsum = (int *)calloc(G->V / 2 + 1, sizeof *gsum), //gsum[G->V / 2 + 1], 
-	(*ex)[2] = (int (*)[2])calloc(G->V / 2 + 1, sizeof *ex),//ex[G->V / 2 + 1][2], 
-	*locked = (int *)calloc(G->V + 1, sizeof *locked), //locked[G->V + 1] ,
-	i, j, k, maxk, maxgain, passes = 0  ;
+	*d = (int *)calloc(V + 1, sizeof *d ), //d[V + 1] 
+	(*cost)[V + 1] = (int (*)[V + 1])calloc(V + 1, sizeof *cost),//cost[V + 1][V + 1], 
+	*gsum = (int *)calloc(V / 2 + 1, sizeof *gsum), //gsum[V / 2 + 1], 
+	(*ex)[2] = (int (*)[2])calloc(V / 2 + 1, sizeof *ex),//ex[V / 2 + 1][2], 
+	*locked = (int *)calloc(V + 1, sizeof *locked), //locked[V + 1] ,
+	i, j, k, maxk, maxgain, passes = 0, cumulative_gain = 0 ;
 
-	char *block = (char *)calloc(G->V + 1, sizeof *block) ; //block[G->V + 1] ;
+	char *block = (char *)calloc(V + 1, sizeof *block) ; //block[V + 1] ;
 	Vertex *v1, *v2 ;
 
 	mainloop:
 	//Initialization
-	memset(d, 0, (G->V + 1) * sizeof *d)  ;
-	memset(cost, 0, (G->V + 1) * sizeof *cost) ;
-	memset(gsum , 0, (G->V / 2 + 1) * sizeof *gsum ) ;
-	memset(ex, 0, (G->V / 2 + 1) * sizeof *ex) ;
-	memset(block, 0, (G->V + 1) * sizeof *block) ;
-	memset(locked, 0, (G->V + 1) * sizeof *locked ) ;
+	memset(d, 0, (V + 1) * sizeof *d)  ;
+	memset(cost, 0, (V + 1) * sizeof *cost) ;
+	memset(gsum , 0, (V / 2 + 1) * sizeof *gsum ) ;
+	memset(ex, 0, (V / 2 + 1) * sizeof *ex) ;
+	memset(block, 0, (V + 1) * sizeof *block) ;
+	memset(locked, 0, (V + 1) * sizeof *locked ) ;
 
 	gsum[0] = 0 ;
 	maxk = 0 ;
 	maxgain = minus_inf ;
 
-	for(i = 0; i < G->V / 2; i++){
+	for(i = 0; i < V / 2; i++){
 		block[ a[i]->label ] = 'a' ;
 		block[ b[i]->label ] = 'b' ;
 	}	
-	if( G->V - G->V / 2  != G->V / 2) {
-		block[ b[G->V - G->V / 2 - 1]->label ] = 'b' ;
+	if( V - V / 2  != V / 2) {
+		block[ b[V - V / 2 - 1]->label ] = 'b' ;
 	}
 
 	//Compute the D value
-	for (i = 0; i < G->V / 2; i++){
+	for (i = 0; i < V / 2; i++){
 		v1 = a[i];
 		v2 = b[i] ;
 		for(j = 0; j < v1->degree; j++){
@@ -108,8 +108,8 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		}
 	}	
 
-	if( G->V - G->V / 2  != G->V / 2) {
-		v2 = b[G->V - G->V / 2 - 1] ;
+	if( V - V / 2  != V / 2) {
+		v2 = b[V - V / 2 - 1] ;
 		for(j = 0; j < v2->degree; j++){
 			if(block[ v2->list[j][0] ] == block[v2->label ]){
 				d[v2->label] -= v2->list[j][1] ;
@@ -121,12 +121,12 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	}
 
 	//Inner loop, get the max-gain exchange pair 
-	for (k = 1; k <= G->V / 2; k++){
+	for (k = 1; k <= V / 2; k++){
 		int to_be_locked[2], to_be_exchanged[2] ;
-		for(i = 0; i < G->V / 2 ; i++){
+		for(i = 0; i < V / 2 ; i++){
 			int a_i_label = a[i]->label ;
 			if (!locked[ a_i_label ]) {
-				for(j = 0; j < G->V - G->V / 2  ; j++){
+				for(j = 0; j < V - V / 2  ; j++){
 					int b_j_label = b[j]->label ;
 					if(!locked[ b_j_label ]){
 						int gain = d[ a_i_label ] + d[ b_j_label ] - 2 * cost[ a_i_label ][ b_j_label ] ;
@@ -170,10 +170,11 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		free(ex);
 		free(block) ;
 		free(locked);
-		printf("\npasses: %d \n", passes);
+		printf("\npasses: %d, cumulative gain: %d \n", passes, cumulative_gain);
 		return ;
 	}else{
 		passes += 1 ;
+		cumulative_gain += gsum[maxk ] ;
 		for(i = 1; i <= maxk; i++){
 			Vertex *temp = a[ ex[i][0] ] ;
 			a[ ex[i][0] ] = b[ ex[i][1] ] ;
@@ -181,7 +182,6 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		}
 		goto mainloop ;
 	}
-				
 }
 
 int main(int argc, char ** argv){

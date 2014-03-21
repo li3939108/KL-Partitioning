@@ -13,7 +13,7 @@ Graph *new_graph(int V, Vertex *vertex_list[]){
 	G->E = 0 ;
 	G->adj_list = (Vertex **)calloc( V + 1, sizeof (Vertex *)) ;
 	G->edge_list = (int (*)[4])calloc(1, sizeof *(G->edge_list)) ;
-	for( i = 0; i < G->V ; i++){
+	for( i = 0; i < G->V ; i++){//Make the adjacency list sorted by the label
 		G->adj_list[ vertex_list[i]->label ] = vertex_list[ i  ] ;
 	}
 	G->adj_list[0] = NULL ;
