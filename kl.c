@@ -2,7 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "graph.h"
+#include "heap.h"
 
+/*
+ * generate a random input file
+ */
 void input_gen(FILE *output, int D, int V){
 	Graph *G = gen(D, V) ;
 	if(output == NULL){
@@ -16,7 +20,6 @@ void input_gen(FILE *output, int D, int V){
 /*
  * show the cut set info 
  * print the cut set by edge pairs
- * print the cut size
  */
 int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){ 
 	int 
@@ -35,7 +38,7 @@ int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){
 	}	
 	block[ b[G->V - G->V / 2 - 1]->label ] = 'b' ;
 	if(output != NULL){
-		fprintf(output, "\nCutset: \n") ;
+		fprintf(output, "\n\nCut set: \n\n") ;
 	}
 
 	for(i = 0; i < G->V / 2; i++){
@@ -57,18 +60,36 @@ int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){
 	return total_cost  ;
 }
 
+/*
+ * do the kl bi-partitioning
+ */
 void partition(Graph *G, Vertex *a[], Vertex *b[]){
-	int minus_inf = (int)(~0) << (sizeof(int) * 8 - 1), V = G->V  ;
+	int minus_inf = (int)(~0) << (sizeof(int) * 8  /  2), V = G->V  ;
 	int
 	*d = (int *)calloc(V + 1, sizeof *d ), //d[V + 1] 
 	(*cost)[V + 1] = (int (*)[V + 1])calloc(V + 1, sizeof *cost),//cost[V + 1][V + 1], 
 	*gsum = (int *)calloc(V / 2 + 1, sizeof *gsum), //gsum[V / 2 + 1], 
 	(*ex)[2] = (int (*)[2])calloc(V / 2 + 1, sizeof *ex),//ex[V / 2 + 1][2], 
 	*locked = (int *)calloc(V + 1, sizeof *locked), //locked[V + 1] ,
-	i, j, k, maxk, maxgain, passes = 0, cumulative_gain = 0 ;
+	maxk, maxgain, passes = 0, cumulative_gain = 0, size_a = V / 2, size_b = V - V / 2  ;
+	register int i, j, k  ;
 
 	char *block = (char *)calloc(V + 1, sizeof *block) ; //block[V + 1] ;
 	Vertex *v1, *v2 ;
+	Heap *h;
+	int values(int i){
+		int label_a = a[ (i / size_b) % size_a ]->label, label_b = b[ i % size_b ]->label ;
+		if(locked[ label_a ] + locked[ label_b ]){
+			return minus_inf ;
+		}else{
+			return 
+			d[ label_a ] + 
+			d[ label_b ] - 
+			2 * cost[ label_a ][ label_b ] ;
+		}
+	}
+
+	h = new_heap(size_a * size_b, values, MAX_h) ;
 
 	mainloop:
 	//Initialization
@@ -127,7 +148,8 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 
 	//Inner loop, get the max-gain exchange pair 
 	for (k = 1; k <= V / 2; k++){
-		int to_be_locked[2], to_be_exchanged[2] ;
+		int to_be_locked[2], to_be_exchanged[2], label_a, label_b;
+		/*
 		for(i = 0; i < V / 2 ; i++){
 			int a_i_label = a[i]->label ;
 			if (!locked[ a_i_label ]) {
@@ -146,6 +168,19 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 				}
 			}
 		}
+		*/
+		if((1 + size_a - k) * (1 + size_b - k) <= h->size / 2){
+			h->size = h->size / 2 ;
+		}
+		build_heap(h) ;
+		maxgain = (*h->values)( h->keys[1] ) ;
+		label_a = a[(h->keys[1] / size_b) % size_a]->label ;
+		label_b = b[h->keys[1] % size_b]->label ;
+		to_be_locked[0] = label_a;
+		to_be_locked[1] = label_b ;
+		to_be_exchanged[0] = (h->keys[1] / size_b) % size_a ;
+		to_be_exchanged[1] = h->keys[1] % size_b ;
+
 		locked[ to_be_locked[0] ] = 1 ;
 		locked[ to_be_locked[1] ] = 1 ;
 		ex[k][0] = to_be_exchanged[0] ;
@@ -175,7 +210,8 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		free(ex);
 		free(block) ;
 		free(locked);
-		printf("\npasses: %d, cumulative gain: %d \n", passes, cumulative_gain);
+		free_heap(h) ;
+		printf("\nPasses: %d, cumulative gain: %d \n", passes, cumulative_gain);
 		return ;
 	}else{
 		passes += 1 ;
@@ -185,6 +221,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 			a[ ex[i][0] ] = b[ ex[i][1] ] ;
 			b[ ex[i][1] ] = temp ;
 		}
+		h->size = h->max_size ;
 		goto mainloop ;
 	}
 }
@@ -195,14 +232,14 @@ int main(int argc, char ** argv){
 		char *line = NULL;
 		size_t len = 0;
 		ssize_t read;
-		int line_n = 0, V, E, (*elist)[4], i, j ;
+		int line_n = 0, V, E, (*elist)[4], i, j, init_cut_size ;
 		Vertex **vlist, **a, **b ;
 		Graph *G, *G2 ;
 /*
  *Generate input by itself
  *
 		output = fopen(argv[1], "w") ;
-		input_gen(output, 4, 1000) ;
+		input_gen(output, 2, 20) ;
 		fclose(output) ;
 */
 
@@ -266,16 +303,16 @@ int main(int argc, char ** argv){
 		}
 		printf("Initial cut size: %d \n", cut(G, a, b, NULL)) ;
 		partition(G, a, b);
-		printf("partitioned \n") ;
-		printf("a:\n");
+		printf("\nPartitioned \n") ;
+		printf("\nFirst partition :\n");
 		for(i = 0; i < V / 2; i++){
 			printf("%d ", a[i]->label) ;
 		}
-		printf("\nb:\n");
+		printf("\nSecond partition :\n");
 		for(i = 0; i < V - V / 2; i++){
 			printf("%d ", b[i]->label) ;
 		}
-		printf("\ncut size: %d \n", cut(G, a, b, stdout)) ;
+		printf("\nCut size after partitioning (initial cut size - cumulative gain):  %d \n", cut(G, a, b, stdout)) ;
 		free(a) ;
 		free(b) ;
 		free_graph (G);
