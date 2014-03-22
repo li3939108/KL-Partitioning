@@ -13,6 +13,7 @@ void input_gen(FILE *output, int D, int V){
 	return ;
 }
 
+
 /*
  * show the cut set info 
  * print the cut set by edge pairs
@@ -135,7 +136,8 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 					int b_j_label = b[j]->label ;
 					if(!locked[ b_j_label ]){
 						int gain = d[ a_i_label ] + d[ b_j_label ] - 2 * cost[ a_i_label ][ b_j_label ] ;
-						if( gain > maxgain ){
+						if( gain >= maxgain ){ 
+							// Either >= or > is OK.
 							maxgain = gain ;
 							to_be_locked[0] = a_i_label ;
 							to_be_exchanged[0] = i ;
