@@ -213,8 +213,13 @@ int main(int argc, char ** argv){
 		while ((read = getline(&line, &len, input)) != -1) {
 			int num1, num2 ;
 			char *saveptr ;
-			num1 = atoi( strtok_r(line, " ", &saveptr) );
-			num2 = atoi( strtok_r(NULL, " ", &saveptr) );
+			char *str1 = strtok_r(line, " ", &saveptr), *str2 = strtok_r(NULL, " ", &saveptr)  ;
+			if(str1 != NULL && str2 != NULL ){
+				num1 = atoi( str1 );
+				num2 = atoi( str2 );
+			}else{
+				continue;
+			}
 			if(line_n == 0){
 				V = num1 ;
 				E = num2 ;
