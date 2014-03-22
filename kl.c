@@ -77,7 +77,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	char *block = (char *)calloc(V + 1, sizeof *block) ; //block[V + 1] ;
 	Vertex *v1, *v2 ;
 	Heap *h;
-	int values(int i){
+	inline int values(int i){
 		int label_a = a[ (i / size_b) % size_a ]->label, label_b = b[ i % size_b ]->label ;
 		if(locked[ label_a ] + locked[ label_b ]){
 			return minus_inf ;
@@ -147,8 +147,9 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	}
 
 	//Inner loop, get the max-gain exchange pair 
+	build_heap(h) ;
 	for (k = 1; k <= V / 2; k++){
-		int to_be_locked[2], to_be_exchanged[2], label_a, label_b;
+		int to_be_locked[2], to_be_exchanged[2], label_a, label_b, index_a, index_b;
 		/*
 		for(i = 0; i < V / 2 ; i++){
 			int a_i_label = a[i]->label ;
@@ -169,22 +170,26 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 			}
 		}
 		*/
-		if((1 + size_a - k) * (1 + size_b - k) <= h->size / 2){
-			h->size = h->size / 2 ;
-		}
-		build_heap(h) ;
-		maxgain = (*h->values)( h->keys[1] ) ;
-		label_a = a[(h->keys[1] / size_b) % size_a]->label ;
-		label_b = b[h->keys[1] % size_b]->label ;
+		maxgain = pop(h, 0) ;
+		index_a = (h->keys[1] / size_b) % size_a ;
+		index_b = h->keys[1] % size_b ;
+		label_a = a[index_a]->label ;
+		label_b = b[index_b]->label ;
 		to_be_locked[0] = label_a;
 		to_be_locked[1] = label_b ;
-		to_be_exchanged[0] = (h->keys[1] / size_b) % size_a ;
-		to_be_exchanged[1] = h->keys[1] % size_b ;
+		to_be_exchanged[0] = index_a;
+		to_be_exchanged[1] = index_b;
 
 		locked[ to_be_locked[0] ] = 1 ;
 		locked[ to_be_locked[1] ] = 1 ;
 		ex[k][0] = to_be_exchanged[0] ;
 		ex[k][1] = to_be_exchanged[1] ;		
+
+		for(i = 0; i < size_a; i++){
+			if(i != index_a){
+				pop(h, h->keys[i * size_b + index_b])
+			}
+		}
 		//update D values 
 		v1 = a[ to_be_exchanged[0] ] ;
 		v2 = b[ to_be_exchanged[1] ] ;
@@ -221,7 +226,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 			a[ ex[i][0] ] = b[ ex[i][1] ] ;
 			b[ ex[i][1] ] = temp ;
 		}
-		h->size = h->max_size ;
+		free_heap(h) ;
 		goto mainloop ;
 	}
 }
