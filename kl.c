@@ -149,7 +149,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	//Inner loop, get the max-gain exchange pair 
 	build_heap(h) ;
 	for (k = 1; k <= V / 2; k++){
-		int to_be_locked[2], to_be_exchanged[2], label_a, label_b, index_a, index_b;
+		int  to_be_exchanged[2], label_a, label_b, index_a, index_b;
 		/*
 		for(i = 0; i < V / 2 ; i++){
 			int a_i_label = a[i]->label ;
@@ -175,13 +175,11 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		index_b = h->keys[1] % size_b ;
 		label_a = a[index_a]->label ;
 		label_b = b[index_b]->label ;
-		to_be_locked[0] = label_a;
-		to_be_locked[1] = label_b ;
 		to_be_exchanged[0] = index_a;
 		to_be_exchanged[1] = index_b;
 
-		locked[ to_be_locked[0] ] = 1 ;
-		locked[ to_be_locked[1] ] = 1 ;
+		locked[ label_b ] = 1 ;
+		locked[ label_a ] = 1 ;
 		ex[k][0] = to_be_exchanged[0] ;
 		ex[k][1] = to_be_exchanged[1] ;		
 
@@ -206,12 +204,18 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		v1 = a[ to_be_exchanged[0] ] ;
 		v2 = b[ to_be_exchanged[1] ] ;
 		for(i = 0; i < v1->degree; i++){
-			d[ v1->list[i][0] ] = 
-			d[ v1->list[i][0] ] + (block[ v1->label ] == block[ v1->list[i][0] ] ? 2 : -2) * cost[ v1->label ][ v1->list[i][0] ] ;
+			int label = v1->list[i][0] ;
+			if(!locked[label]){
+				d[ label ] = 
+				d[ label ] + (block[ v1->label ] == block[ label ] ? 2 : -2) * cost[ v1->label ][ label ] ;
+			}
 		}
 		for(i = 0; i < v2->degree; i++){
-			d[ v2->list[i][0] ] = 
-			d[ v2->list[i][0] ] + (block[ v2->label ] == block[ v2->list[i][0] ] ? 2 : -2) * cost[ v2->label ][ v2->list[i][0] ] ;
+			int label = v2->list[i][0] ;
+			if(!locked[label]){
+				d[ label ] = 
+				d[ label ] + (block[ v2->label ] == block[ label ] ? 2 : -2) * cost[ v2->label ][ label ] ;
+			}
 		}
 
 		gsum[k] = gsum[k - 1] + maxgain;
