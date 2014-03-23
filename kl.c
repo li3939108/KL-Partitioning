@@ -156,7 +156,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		v1 = a[ to_be_exchanged[0] ] ;
 		v2 = b[ to_be_exchanged[1] ] ;
 		for(i = 0; i < v1->degree; i++){
-		int label = v1->list[i][0] ;
+			int label = v1->list[i][0] ;
 			if(!locked[label]){
 				d[ label ] = 
 				d[ label ] + (block[ v1->label ] == block[ label ] ? 2 : -2) * cost[ v1->label ][ label ] ;
