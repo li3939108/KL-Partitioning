@@ -71,6 +71,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	*gsum = (int *)calloc(V / 2 + 1, sizeof *gsum), //gsum[V / 2 + 1], 
 	(*ex)[2] = (int (*)[2])calloc(V / 2 + 1, sizeof *ex),//ex[V / 2 + 1][2], 
 	*locked = (int *)calloc(V + 1, sizeof *locked), //locked[V + 1] ,
+	*indices = (int *)calloc(V + 1, sizeof *indices) ,
 	maxk, maxgain, passes = 0, cumulative_gain = 0, size_a = V / 2, size_b = V - V / 2  ;
 	register int i, j, k  ;
 
@@ -107,9 +108,13 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	for(i = 0; i < V / 2; i++){
 		block[ a[i]->label ] = 'a' ;
 		block[ b[i]->label ] = 'b' ;
+		indices[ a[i]->label ] = i ;
+		indices[ b[i]->label ] = i ;
 	}	
 	if( V - V / 2  != V / 2) {
-		block[ b[V - V / 2 - 1]->label ] = 'b' ;
+		int i = V - V / 2 - 1 ;
+		block[ b[ i ]->label ] = 'b' ;
+		indices[ b[ i ]->label ] = i ;
 	}
 
 	//Compute the D value
@@ -175,13 +180,11 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		index_b = h->keys[1] % size_b ;
 		label_a = a[index_a]->label ;
 		label_b = b[index_b]->label ;
-		to_be_exchanged[0] = index_a;
-		to_be_exchanged[1] = index_b;
 
 		locked[ label_b ] = 1 ;
 		locked[ label_a ] = 1 ;
-		ex[k][0] = to_be_exchanged[0] ;
-		ex[k][1] = to_be_exchanged[1] ;		
+		ex[k][0] = index_a ;
+		ex[k][1] = index_b ;		
 
 		for(i = 0; i < V / 2; i++){
 			if(i != index_a){
@@ -194,27 +197,114 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 			}
 		}
 		if(V / 2 != V - V / 2){
-			int i = V - V / 2;
+			int i = V - V / 2 - 1;
 			if(i != index_b){
-				int key = index_a * size_b + i == 0 ? h->keys[size_a * size_b] : h->keys[ (index_a * size_b + i ) ] ;
+				int key = h->keys[ (index_a * size_b + i ) ] ;
 				pop(h, key);
             }
         }
 		//update D values 
-		v1 = a[ to_be_exchanged[0] ] ;
-		v2 = b[ to_be_exchanged[1] ] ;
+		v1 = a[ index_a ] ;
+		v2 = b[ index_b ] ;
 		for(i = 0; i < v1->degree; i++){
-			int label = v1->list[i][0] ;
+			int label = v1->list[i][0], index  ;
 			if(!locked[label]){
-				d[ label ] = 
-				d[ label ] + (block[ v1->label ] == block[ label ] ? 2 : -2) * cost[ v1->label ][ label ] ;
+				bool same_block = (block[ v1->label ] == block[ label ]) ;
+				if(same_block){
+					d[ label ] = 
+					d[ label ] + 2 * cost[ v1->label ][ label ] ;
+					index = indices[ label ] ;
+					if(index == 0){
+						if(!locked[ b[0]->label ]){
+							update(h, size_a * size_b, false) ;						
+						}
+						for(j = 1; j < V - V / 2; j++){
+							if(!locked[ b[j]->label ]){
+								update(h, index * size_b + j, false) ;
+							}
+						}
+					}else{
+						for(j = 0; j < V - V / 2; j++){
+							if(!locked[ b[j]->label ]){
+								update(h, index * size_b + j, false) ;
+							}
+						}
+					}
+
+				}else{
+					d[ label ] = 
+					d[ label ] - 2 * cost[ v1->label ][ label ] ;
+
+					index = indices[ label ] ;
+					if(index == 0){
+						if(!locked [ a[0]->label ]){
+							update(h, size_a * size_b,true) ;
+						}
+						for(j = 1; j < V - V / 2; j++){
+							if(!locked[ a[j]->label ]){
+								update(h, j * size_b + index, true) ;
+							}
+						}
+					}else{
+						for(j = 0; j < V - V / 2; j++){
+							if(!locked[ a[j]->label ]){
+								update(h, j * size_b + index, true) ;
+							}
+						}
+						
+					}	
+				}
 			}
 		}
 		for(i = 0; i < v2->degree; i++){
-			int label = v2->list[i][0] ;
+			int label = v2->list[i][0], index ;
 			if(!locked[label]){
-				d[ label ] = 
-				d[ label ] + (block[ v2->label ] == block[ label ] ? 2 : -2) * cost[ v2->label ][ label ] ;
+
+				bool other_block = (block[ v2->label ] != block[ label ]) ;
+				if(other_block){
+					d[ label ] = 
+					d[ label ] - 2 * cost[ v2->label ][ label ] ;
+					index = indices[ label ] ;
+					if(index == 0){
+						if(!locked[ b[0]->label ]){
+							update(h, size_a * size_b, true) ;						
+						}
+						for(j = 1; j < V - V / 2; j++){
+							if(!locked[ b[j]->label ]){
+								update(h, index * size_b + j, true) ;
+							}
+						}
+					}else{
+						for(j = 0; j < V - V / 2; j++){
+							if(!locked[ b[j]->label ]){
+								update(h, index * size_b + j, true) ;
+							}
+						}
+					}
+
+				}else{
+					d[ label ] = 
+					d[ label ] + 2 * cost[ v2->label ][ label ] ;
+
+					index = indices[ label ] ;
+					if(index == 0){
+						if(!locked [ a[0]->label ]){
+							update(h, size_a * size_b, false) ;						
+						}
+						for(j = 1; j < V - V / 2; j++){
+							if(!locked[ a[j]->label ]){
+								update(h, j * size_b + index, false) ;
+							}
+						}
+					}else{
+						for(j = 0; j < V - V / 2; j++){
+							if(!locked[ a[j]->label ]){
+								update(h, j * size_b + index, false) ;
+							}
+						}
+						
+					}	
+				}
 			}
 		}
 
@@ -241,6 +331,8 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 			Vertex *temp = a[ ex[i][0] ] ;
 			a[ ex[i][0] ] = b[ ex[i][1] ] ;
 			b[ ex[i][1] ] = temp ;
+			indices[ a[ ex[i][0] ]->label ] = ex[i][0] ;
+			indices[ b[ ex[i][0] ]->label ] = ex[i][1] ;
 		}
 		free_heap(h) ;
 		goto mainloop ;
