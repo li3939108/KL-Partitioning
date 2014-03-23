@@ -158,13 +158,13 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		for(i = 0; i < v1->degree; i++){
 		int label = v1->list[i][0] ;
 			if(!locked[label]){
-			    d[ label ] = 
-			    d[ label ] + (block[ v1->label ] == block[ label ] ? 2 : -2) * cost[ v1->label ][ label ] ;
-            }
+				d[ label ] = 
+				d[ label ] + (block[ v1->label ] == block[ label ] ? 2 : -2) * cost[ v1->label ][ label ] ;
+			}
 		}
 		for(i = 0; i < v2->degree; i++){
-            int label = v2->list[i][0] ;
-            if(!locked[label]){
+			int label = v2->list[i][0] ;
+			if(!locked[label]){
 				d[ label ] = 
 				d[ label ] + (block[ v2->label ] == block[ label ] ? 2 : -2) * cost[ v2->label ][ label ] ;
 			}
