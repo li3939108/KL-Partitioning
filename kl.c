@@ -90,7 +90,6 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		}
 	}
 
-	h = new_heap(size_a * size_b, values, MAX_h) ;
 
 	mainloop:
 	//Initialization
@@ -104,6 +103,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	gsum[0] = 0 ;
 	maxk = 0 ;
 	maxgain = minus_inf ;
+	h = new_heap(size_a * size_b, values, MAX_h) ;
 
 	for(i = 0; i < V / 2; i++){
 		block[ a[i]->label ] = 'a' ;
@@ -153,6 +153,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 
 	//Inner loop, get the max-gain exchange pair 
 	build_heap(h) ;
+	ph(h,0);
 	for (k = 1; k <= V / 2; k++){
 		int  to_be_exchanged[2], label_a, label_b, index_a, index_b;
 		/*
@@ -175,11 +176,11 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 			}
 		}
 		*/
-		maxgain = pop(h, 0) ;
 		index_a = (h->keys[1] / size_b) % size_a ;
 		index_b = h->keys[1] % size_b ;
 		label_a = a[index_a]->label ;
 		label_b = b[index_b]->label ;
+		maxgain = pop(h, 0) ;
 
 		locked[ label_b ] = 1 ;
 		locked[ label_a ] = 1 ;
@@ -187,19 +188,19 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		ex[k][1] = index_b ;		
 
 		for(i = 0; i < V / 2; i++){
-			if(i != index_a){
-				int key = i * size_b + index_b == 0 ? h->keys[size_a * size_b] : h->keys[ ( i * size_b + index_b ) ] ;
+			if(!locked[ a[i]->label ]){
+				int key = i * size_b + index_b == 0 ? size_a * size_b :  i * size_b + index_b  ;
 				pop(h, key) ;
 			}
-			if(i != index_b){
-				int key = index_a * size_b + i == 0 ? h->keys[size_a * size_b] : h->keys[ (index_a * size_b + i ) ] ;
+			if(!locked[ b[i]->label ]){
+				int key = index_a * size_b + i == 0 ? size_a * size_b : index_a * size_b + i  ;
 				pop(h, key);
 			}
 		}
 		if(V / 2 != V - V / 2){
 			int i = V - V / 2 - 1;
-			if(i != index_b){
-				int key = h->keys[ (index_a * size_b + i ) ] ;
+			if(!locked[ b[i]->label ]){
+				int key = index_a * size_b + i ;
 				pop(h, key);
             }
         }
@@ -222,7 +223,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 							if(!locked[ b[j]->label ]){
 								update(h, index * size_b + j, false) ;
 							}
-						}
+							}
 					}else{
 						for(j = 0; j < V - V / 2; j++){
 							if(!locked[ b[j]->label ]){
@@ -240,13 +241,13 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 						if(!locked [ a[0]->label ]){
 							update(h, size_a * size_b,true) ;
 						}
-						for(j = 1; j < V - V / 2; j++){
+						for(j = 1; j < V / 2; j++){
 							if(!locked[ a[j]->label ]){
 								update(h, j * size_b + index, true) ;
 							}
 						}
 					}else{
-						for(j = 0; j < V - V / 2; j++){
+						for(j = 0; j < V / 2; j++){
 							if(!locked[ a[j]->label ]){
 								update(h, j * size_b + index, true) ;
 							}
@@ -259,7 +260,6 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		for(i = 0; i < v2->degree; i++){
 			int label = v2->list[i][0], index ;
 			if(!locked[label]){
-
 				bool other_block = (block[ v2->label ] != block[ label ]) ;
 				if(other_block){
 					d[ label ] = 
@@ -291,13 +291,13 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 						if(!locked [ a[0]->label ]){
 							update(h, size_a * size_b, false) ;						
 						}
-						for(j = 1; j < V - V / 2; j++){
+						for(j = 1; j <  V / 2; j++){
 							if(!locked[ a[j]->label ]){
 								update(h, j * size_b + index, false) ;
 							}
 						}
 					}else{
-						for(j = 0; j < V - V / 2; j++){
+						for(j = 0; j <  V / 2; j++){
 							if(!locked[ a[j]->label ]){
 								update(h, j * size_b + index, false) ;
 							}
@@ -332,7 +332,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 			a[ ex[i][0] ] = b[ ex[i][1] ] ;
 			b[ ex[i][1] ] = temp ;
 			indices[ a[ ex[i][0] ]->label ] = ex[i][0] ;
-			indices[ b[ ex[i][0] ]->label ] = ex[i][1] ;
+			indices[ b[ ex[i][1] ]->label ] = ex[i][1] ;
 		}
 		free_heap(h) ;
 		goto mainloop ;
