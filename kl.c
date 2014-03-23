@@ -153,7 +153,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 
 	//Inner loop, get the max-gain exchange pair 
 	build_heap(h) ;
-	ph(h,0);
+//	ph(h,0);
 	for (k = 1; k <= V / 2; k++){
 		int  to_be_exchanged[2], label_a, label_b, index_a, index_b;
 		/*
@@ -348,13 +348,10 @@ int main(int argc, char ** argv){
 		int line_n = 0, V, E, (*elist)[4], i, j, init_cut_size ;
 		Vertex **vlist, **a, **b ;
 		Graph *G, *G2 ;
-/*
- *Generate input by itself
- *
+
 		output = fopen(argv[1], "w") ;
-		input_gen(output, 2, 20) ;
+		input_gen(output, 4, 1000) ;
 		fclose(output) ;
-*/
 
 		input = fopen(argv[1], "r");
 		if (input == NULL){
