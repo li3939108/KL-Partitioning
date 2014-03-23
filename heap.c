@@ -52,8 +52,7 @@ void max_heapify(Heap *h, int i){
 		max_heapify(h, maximum) ;
 	}
 }
-/*
-void max_update(Heap *h, int key, int value){
+void max_update(Heap *h, int key, bool smaller){
 	int index; 
 	if( key >= 1 && key <= h->max_size){
 		index = h->indices[key] ;
@@ -65,18 +64,16 @@ void max_update(Heap *h, int key, int value){
 		perror("The key has been deleted or no such key");
 		exit(EXIT_FAILURE) ;
 	}
-	if( value < (*h->values)(key)){
-		(*h->values)(key) = value ;
+	if( smaller){
 		max_heapify(h, index) ;
 	}else{
-		(*h->values)(key) = value ;
 		while( (*h->values)(h->keys[parent(index)]) < (*h->values)(h->keys[index]) && index > 1){
 			exchange(h, parent(index), index);
 			index = parent(index) ;
 		}
 	}
 }
-void min_update(Heap *h, int key, int value){
+void min_update(Heap *h, int key, bool larger ){
 	int index; 
 	if( key >= 1 && key <= h->max_size){
 		index = h->indices[key] ;
@@ -88,30 +85,27 @@ void min_update(Heap *h, int key, int value){
 		perror("The key has been deleted or no such key");
 		exit(EXIT_FAILURE) ;
 	}
-	if( value > (*h->values)(key)){
-		(*h->values)(key) = value ;
+	if( larger){
 		min_heapify(h, index) ;
 	}else{
-		(*h->values)(key) = value ;
 		while((*h->values)(h->keys[parent(index)]) > (*h->values)(h->keys[index]) && index > 1){
 			exchange(h, parent(index), index);
 			index = parent(index) ;
 		}
 	}
 }
-*/
 void set_type(Heap *h, heap_t t){
 	if(t != h->t){
 		h->t = t ;
 		switch(t){
 			case MAX_h:
 			h->heapify = max_heapify ;
-//			h->update = max_update ;
+			h->update = max_update ;
 			break;
 
 			case MIN_h:
 			h->heapify = min_heapify ;
-//			h->update = min_update ;
+			h->update = min_update ;
 			break;
 
 			default:
@@ -222,11 +216,9 @@ void free_heap(Heap *h){
 	free(h->keys) ;
 	free(h) ;
 }
-/*
-void update(Heap *h, int key, int value){
-	return (*h->update)(h, key, value) ;
+void update(Heap *h, int key, bool down){
+	return (*h->update)(h, key, down) ;
 }
-*/
 void heapify(Heap *h, int index) {
 	return (*h->heapify)(h, index) ;
 }

@@ -185,11 +185,23 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		ex[k][0] = to_be_exchanged[0] ;
 		ex[k][1] = to_be_exchanged[1] ;		
 
-		for(i = 0; i < size_a; i++){
+		for(i = 0; i < V / 2; i++){
 			if(i != index_a){
-				pop(h, h->keys[i * size_b + index_b])
+				int key = i * size_b + index_b == 0 ? h->keys[size_a * size_b] : h->keys[ ( i * size_b + index_b ) ] ;
+				pop(h, key) ;
+			}
+			if(i != index_b){
+				int key = index_a * size_b + i == 0 ? h->keys[size_a * size_b] : h->keys[ (index_a * size_b + i ) ] ;
+				pop(h, key);
 			}
 		}
+		if(V / 2 != V - V / 2){
+            int i = V - V / 2;
+            if(i != index_b){
+			    int key = index_a * size_b + i == 0 ? h->keys[size_a * size_b] : h->keys[ (index_a * size_b + i ) ] ;
+				pop(h, key);
+            }
+        }
 		//update D values 
 		v1 = a[ to_be_exchanged[0] ] ;
 		v2 = b[ to_be_exchanged[1] ] ;

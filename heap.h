@@ -26,7 +26,7 @@ typedef struct _Heap{
 	int *indices ;
 	heap_t t ;
 	void (*heapify)(struct _Heap *h, int index) ;
-//	void (*update)(struct _Heap *h, int key, int value) ;
+	void (*update)(struct _Heap *h, int key, bool down) ;
 } Heap ;
 
 #ifndef __HEAP_FUN__
