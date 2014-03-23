@@ -196,9 +196,9 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 			}
 		}
 		if(V / 2 != V - V / 2){
-            int i = V - V / 2;
-            if(i != index_b){
-			    int key = index_a * size_b + i == 0 ? h->keys[size_a * size_b] : h->keys[ (index_a * size_b + i ) ] ;
+			int i = V - V / 2;
+			if(i != index_b){
+				int key = index_a * size_b + i == 0 ? h->keys[size_a * size_b] : h->keys[ (index_a * size_b + i ) ] ;
 				pop(h, key);
             }
         }
