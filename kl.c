@@ -350,7 +350,7 @@ int main(int argc, char ** argv){
 		Graph *G, *G2 ;
 
 		output = fopen(argv[1], "w") ;
-		input_gen(output, 3, 4000) ;
+		input_gen(output, 3, 1000) ;
 		fclose(output) ;
 
 		input = fopen(argv[1], "r");
