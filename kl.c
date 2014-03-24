@@ -153,29 +153,8 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 
 	//Inner loop, get the max-gain exchange pair 
 	build_heap(h) ;
-//	ph(h,0);
 	for (k = 1; k <= V / 2; k++){
 		int  to_be_exchanged[2], label_a, label_b, index_a, index_b;
-		/*
-		for(i = 0; i < V / 2 ; i++){
-			int a_i_label = a[i]->label ;
-			if (!locked[ a_i_label ]) {
-				for(j = 0; j < V - V / 2  ; j++){
-					int b_j_label = b[j]->label ;
-					if(!locked[ b_j_label ]){
-						int gain = d[ a_i_label ] + d[ b_j_label ] - 2 * cost[ a_i_label ][ b_j_label ] ;
-						if( gain > maxgain ){
-							maxgain = gain ;
-							to_be_locked[0] = a_i_label ;
-							to_be_exchanged[0] = i ;
-							to_be_locked[1] = b_j_label ;
-							to_be_exchanged[1] = j ;
-						}
-					}
-				}
-			}
-		}
-		*/
 		index_a = (h->keys[1] / size_b) % size_a ;
 		index_b = h->keys[1] % size_b ;
 		label_a = a[index_a]->label ;

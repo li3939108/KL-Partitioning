@@ -3,7 +3,7 @@
 #include <time.h>
 #include "heap.h"
 
- int left(int index){
+int left(int index){
 	return index * 2 ;
 }
  int right(int index){
