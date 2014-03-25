@@ -221,7 +221,7 @@ int main(int argc, char ** argv){
 		while ((read = getline(&line, &len, input)) != -1) {
 			int num1, num2 ;
 			char *saveptr ;
-			char *str1 = strtok_r(line, " ", &saveptr), *str2 = strtok_r(NULL, " ", &saveptr)  ;
+			char *str1 = strtok_r(line, " \t\v\f\r", &saveptr), *str2 = strtok_r(NULL, " \t\v\f\r", &saveptr)  ;
 			if(str1 != NULL && str2 != NULL ){
 				num1 = atoi( str1 );
 				num2 = atoi( str2 );
@@ -234,7 +234,9 @@ int main(int argc, char ** argv){
 				vlist = (Vertex **)calloc(V + 1, sizeof(Vertex *)) ;
 				elist = (int (*)[4])calloc(E + 1, sizeof *elist) ;
 				memset(elist, 0, sizeof *elist) ;
-				vlist[0] = NULL ;
+				for(i = 0; i <= V; i++){
+					vlist[i] = new_vertex(i);
+				}
 			}else{
 				Vertex *v1, *v2 ;
 				elist[line_n][0] = line_n ;
@@ -243,12 +245,6 @@ int main(int argc, char ** argv){
 				elist[line_n][3] = 1 ;
 				v1 = vlist[num1] ;
 				v2 = vlist[num2] ;
-				if(v1 == NULL){
-					v1 = new_vertex(num1) ;
-				}
-				if(v2 == NULL){
-					v2 = new_vertex(num2) ;
-				}
 				add_adjacency_vertex(v1, v2->label, 1) ;
 				add_adjacency_vertex(v2, v1->label, 1) ;
 				vlist[v1->label] = v1 ;
