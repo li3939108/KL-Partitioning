@@ -1,3 +1,6 @@
+/***************************************
+ April 2014 Chaofan Li <chaof@tamu.edu>
+***************************************/
 #define __GRAPH_FUN__
 #include <string.h>
 #include <math.h>

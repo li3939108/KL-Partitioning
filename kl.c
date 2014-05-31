@@ -1,3 +1,6 @@
+/***************************************
+ April 2014 Chaofan Li <chaof@tamu.edu>
+***************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

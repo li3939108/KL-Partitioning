@@ -1,3 +1,6 @@
+/***************************************
+ April 2014 Chaofan Li <chaof@tamu.edu>
+***************************************/
 #ifndef __GRAPH_H__
 #define __GRAPH_H__
 
