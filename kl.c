@@ -61,8 +61,22 @@ int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){
 	return total_cost  ;
 }
 
+/*
+ * Simple implementation of the Kernighan-Lin algorithm 
+ * to solve the Balanced Min-Cut problem.
+ *
+ * TODO 
+ * Using the Balanced Tree structure to store the pair set
+ * thus making the retrival of min pair more efficiently
+ */
 void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	int minus_inf = (int)(~0) << (sizeof(int) * 8 - 1), V = G->V  ;
+
+	/*
+	 * XXX 
+	 * DONOT use stack. The size of these arrays can be very large
+	 * and will cause stack overflow.
+	 */
 	int
 	*d = (int *)calloc(V + 1, sizeof *d ), //d[V + 1] 
 	(*cost)[V + 1] = (int (*)[V + 1])calloc(V + 1, sizeof *cost),//cost[V + 1][V + 1], 
@@ -70,7 +84,6 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	(*ex)[2] = (int (*)[2])calloc(V / 2 + 1, sizeof *ex),//ex[V / 2 + 1][2], 
 	*locked = (int *)calloc(V + 1, sizeof *locked), //locked[V + 1] ,
 	i, j, k, maxk, maxgain, passes = 0, cumulative_gain = 0 ;
-
 	char *block = (char *)calloc(V + 1, sizeof *block) ; //block[V + 1] ;
 	Vertex *v1, *v2 ;
 
@@ -200,22 +213,37 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	}
 }
 
+/*
+ * ==INPUT format
+ *
+ * The first line specifies the number of nodes |V|, 
+ * and the number of edges |E|
+ *
+ * The nodes then are numbered 1 to |V|.
+ * The following |E| lines specify edges
+ *
+ * Note that there could be unconnected nodes, i.e.,
+ * nodes not connected to any other nodes.
+ *
+ * ==SYNOPSIS
+ *   $ kl klin
+ */
 int main(int argc, char ** argv){
 	if(argc == 2){
-		FILE *input, *output; //input file
+		FILE *input, *output; 
 		char *line = NULL;
 		size_t len = 0;
 		ssize_t read;
-		int line_n = 0, V, E, (*elist)[4], i, j ;
+		int line_n = 0, V, E, (*elist)[2], i, j, (*epair)[2] ;
 		Vertex **vlist, **a, **b ;
 		Graph *G, *G2 ;
-/*
- *Generate input by itself
- *
+		/*
+		 *Generate input by itself
+ 		 *
 		output = fopen(argv[1], "w") ;
 		input_gen(output, 4, 1000) ;
 		fclose(output) ;
-*/
+		*/
 
 		input = fopen(argv[1], "r");
 		if (input == NULL){
@@ -235,17 +263,19 @@ int main(int argc, char ** argv){
 				V = num1 ;
 				E = num2 ;
 				vlist = (Vertex **)calloc(V + 1, sizeof(Vertex *)) ;
-				elist = (int (*)[4])calloc(E + 1, sizeof *elist) ;
+				elist = (int (*)[2])calloc(E + 1, sizeof *elist) ;
+				epair = (int (*)[2])calloc(E + 1, sizeof *epair) ;
 				memset(elist, 0, sizeof *elist) ;
+				memset(epair, 0, sizeof *epair) ;
 				for(i = 0; i <= V; i++){
 					vlist[i] = new_vertex(i);
 				}
 			}else{
 				Vertex *v1, *v2 ;
 				elist[line_n][0] = line_n ;
-				elist[line_n][1] = num1 ;
-				elist[line_n][2] = num2 ;
-				elist[line_n][3] = 1 ;
+				elist[line_n][1] = 1 ;
+				epair[line_n][0] = num1 ;
+				epair[line_n][1] = num2 ;
 				v1 = vlist[num1] ;
 				v2 = vlist[num2] ;
 				add_adjacency_vertex(v1, v2->label, 1) ;
@@ -260,21 +290,18 @@ int main(int argc, char ** argv){
 		G->E = E ;
 		free(G->edge_list);
 		free(G->adj_list);
+		free(G->edge_pair) ;
 		G->edge_list = elist ;
+		G->edge_pair = epair ;
 		G->adj_list = vlist ;
-		//Graph G generated
 		
 		a = (Vertex **)calloc(V / 2, sizeof(Vertex *));		
-//		printf("a:\n");
 		for(i = 0; i < V / 2; i++){
 			a[i] = G->adj_list[i + 1] ;
-//			pv(a[i]);
 		}
 		b = (Vertex **)calloc(V - V / 2, sizeof(Vertex *));		
-//		printf("b:\n");
 		for(i = 0; i < V - V / 2; i++){
 			b[i] = G->adj_list[V / 2 + i + 1] ;
-//			pv(b[i]);
 		}
 		printf("Initial cut size: %d \n", cut(G, a, b, NULL)) ;
 		partition(G, a, b);

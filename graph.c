@@ -1,7 +1,6 @@
 /***************************************
  April 2014 Chaofan Li <chaof@tamu.edu>
 ***************************************/
-#define __GRAPH_FUN__
 #include <string.h>
 #include <math.h>
 #include <time.h>
@@ -9,31 +8,31 @@
 #include <stdio.h>
 #include "graph.h"
 
+Vertex *new_vertex(int label){
+	Vertex *v = (Vertex *)malloc( sizeof (Vertex)) ;
+	v->degree = 0;
+	v->label = label;
+	v->list = NULL;
+	return  v ;
+}
 Graph *new_graph(int V, Vertex *vertex_list[]){
 	int i = 0;
 	Graph * G = (Graph *)malloc( sizeof (Graph) ) ;
 	G->V = V ;
 	G->E = 0 ;
 	G->adj_list = (Vertex **)calloc( V + 1, sizeof (Vertex *)) ;
-	G->edge_list = (int (*)[4])calloc(1, sizeof *(G->edge_list)) ;
+	G->edge_list = (int (*)[2])calloc(1, sizeof *(G->edge_list)) ;
+	G->edge_pair =  (int (*)[2])calloc(1, sizeof *(G->edge_pair)) ;
 	for( i = 0; i < G->V ; i++){//Make the adjacency list sorted by the label
 		G->adj_list[ vertex_list[i]->label ] = vertex_list[ i  ] ;
 	}
-	G->adj_list[0] = NULL ;
+	G->adj_list[0] = new_vertex(0) ;
 	memset(G->edge_list, 0, sizeof *(G->edge_list)) ;
+	memset(G->edge_pair, 0, sizeof *(G->edge_pair)) ;
 	return G ;
 }
-Vertex *new_vertex(int label){
-	Vertex *v = (Vertex *)malloc( sizeof (Vertex)) ;
-	v->degree = 0;
-	v->label = label;
-	v->parent = v ;
-	v->rank = 0 ;
-	v->list = NULL;
-	return  v ;
-}
+
 void free_vertex(Vertex *v){
-	int i ;
 	if(v == NULL){return ;}
 	if(v->list != NULL){
 		free(v->list) ;
@@ -52,6 +51,9 @@ void free_graph(Graph *G){
 	if(G->edge_list != NULL){
 		free(G->edge_list) ;
 	}
+	if(G->edge_pair != NULL){
+		free(G->edge_pair) ;
+	}
 	free(G);
 }
 void add_adjacency_vertex(Vertex *v, int label, int weight) {
@@ -61,18 +63,18 @@ void add_adjacency_vertex(Vertex *v, int label, int weight) {
 	v->list[v->degree - 1][1] = weight ;
 }
 
-void pv(Vertex *v){
+void pv(Vertex *v, FILE *fp){
 	int i ;
-	printf("%d -> ", v->label) ;
+	fprintf(fp, "%d -> ", v->label) ;
 	for(i = 0; i < v->degree; i++){
-		printf("[%d %d] ", v->list[i][0], v->list[i][1]);
+		fprintf(fp, "[%d %d] ", v->list[i][0], v->list[i][1]);
 	}
-	putchar('\n');
+	fputc('\n', fp);
 }
-void pg(Graph *g){
+void pg(Graph *g, FILE *fp){
 	int i;
 	for(i = 1; i <=g->V; i++){
-		pv(g->adj_list[i]) ;
+		pv(g->adj_list[i], fp) ;
 	}
 }
 
@@ -85,7 +87,7 @@ Graph *gen(int D, int V){
 	Vertex 
 	*(*sets)[V] = (Vertex *(*)[V])calloc(3, sizeof *sets),
 	*v1 = NULL, *v2 = NULL;
-	int dgr[3] = {-1, 0, 1}, len[3] = {0, 0, 0}, min_index, new_index, i, j ;
+	int dgr[3] = {-1, 0, 1}, len[3] = {0, 0, 0}, min_index, new_index, i ;
 	if( D  > V - 1){
 		perror("No such graph: total degree should be less than of equal to 2 x maximal number of edge") ;
 		exit(EXIT_FAILURE) ;
@@ -95,9 +97,8 @@ Graph *gen(int D, int V){
 	}
 	len[1] = V ;
 	min_index = 1;
-	srand(time(NULL)) ;
 	while(len[0] < V - 1){
-		int v = rand() % (V - len[0]), l, d, pl  ;
+		int v = rand() % (V - len[0]), l, pl  ;
 		if( v / len[ min_index ] == 0){
 			v1 = sets[min_index][v] ;
 			memmove(sets[min_index] + v, sets[min_index] + v + 1, (len[min_index] - v - 1) * sizeof(Vertex *)) ;
@@ -182,7 +183,7 @@ void edges(Graph * G, FILE *output){
 		}else{
 			fprintf (output, "%d  %d\n", G->V, G->E) ;		
 			for(i = 1; i <= G->E; i++){
-				fprintf(output, "%d %d\n", G->edge_list[i][1], G->edge_list[i][2]) ;
+				fprintf(output, "%d %d\n", G->edge_pair[i][0], G->edge_pair[i][1]) ;
 			}
 		}
 	}else{
@@ -191,11 +192,12 @@ void edges(Graph * G, FILE *output){
 			for( j = 0; j < v->degree; j++){
 				if(v->label < v->list[j][0]){
 					G->E += 1 ;
-					G->edge_list = (int (*)[4])realloc(G->edge_list, (G->E + 1)* sizeof *(G->edge_list)); 		
+					G->edge_list = (int (*)[2])realloc(G->edge_list, (G->E + 1)* sizeof *(G->edge_list)); 		
 					G->edge_list[ G->E ][0] = G->E ;	
-					G->edge_list[ G->E ][1] = v->label ;	
-					G->edge_list[ G->E ][2] = v->list[j][0] ;	
-					G->edge_list[ G->E ][3] = v->list[j][1] ;	
+					G->edge_list[ G->E ][1] = v->list[j][1] ;	
+					G->edge_pair = (int (*)[2])realloc(G->edge_pair, (G->E + 1)* sizeof *(G->edge_pair)); 		
+					G->edge_pair[ G->E ][0] = v->label ;	
+					G->edge_pair[ G->E ][1] = v->list[j][0] ;	
 				}
 			}
 		}
