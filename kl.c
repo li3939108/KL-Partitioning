@@ -73,7 +73,7 @@ int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){
  * ICCAD 1993
  */
 void partition(Graph *G, Vertex *a[], Vertex *b[]){
-	int minus_inf = (int)(~0) << (sizeof(int) * 8 - 1), V = G->V  ;
+	int INT_MIN = (int)(~0) << (sizeof(int) * 8 - 1), V = G->V  ;
 
 	/*
 	 * XXX 
@@ -101,7 +101,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 
 	gsum[0] = 0 ;
 	maxk = 0 ;
-	maxgain = minus_inf ;
+	maxgain = INT_MIN ;
 
 	for(i = 0; i < V / 2; i++){
 		block[ a[i]->label ] = 'a' ;
@@ -193,7 +193,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		if(gsum[k] > gsum[ maxk ]){
 			maxk = k ;
 		}
-		maxgain = minus_inf ;
+		maxgain = INT_MIN ;
 	}
 	if(maxk == 0){
 		free(d) ;
