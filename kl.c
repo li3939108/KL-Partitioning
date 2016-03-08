@@ -68,6 +68,9 @@ int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){
  * TODO 
  * Using the Balanced Tree structure to store the pair set
  * thus making the retrival of min pair more efficiently
+ * See "New Faster Kernighan-Lin-Type Graph-Partitioning Algorithms" 
+ * by Shantanu Dutt 
+ * ICCAD 1993
  */
 void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	int minus_inf = (int)(~0) << (sizeof(int) * 8 - 1), V = G->V  ;
