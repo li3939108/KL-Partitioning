@@ -1,12 +1,19 @@
 /***************************************
  April 2014 Chaofan Li <chaof@tamu.edu>
 ***************************************/
+
+/* 
+ * This file defines some graph structures 
+ * and a random graph generator 
+ */
+
 #include <string.h>
 #include <math.h>
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "graph.h"
+
 
 Vertex *new_vertex(int label){
 	Vertex *v = (Vertex *)malloc( sizeof (Vertex)) ;
