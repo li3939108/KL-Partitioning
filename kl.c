@@ -65,6 +65,11 @@ int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){
  * Simple implementation of the Kernighan-Lin algorithm 
  * to solve the Balanced Min-Cut problem.
  *
+ * TODO
+ * The time complexity is O(n^3)
+ * which can be improved to O(n^2 log n)
+ * using something like a heap
+ * 
  * TODO 
  * Using the Balanced Tree structure to store the pair set
  * thus making the retrival of min pair more efficiently
