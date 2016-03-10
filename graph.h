@@ -4,9 +4,10 @@
 #ifndef __GRAPH_H__
 #define __GRAPH_H__
 
-#define MAX_EDGE_WEIGHT 5000000
-#include <stdio.h>
+#define MAX_EDGE_WEIGHT	5000000
+#define MAX_DEGREE		(1<<10)
 
+#include <stdio.h>
 
 typedef struct _Vertex{
 	int degree ;

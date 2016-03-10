@@ -73,12 +73,14 @@ int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){
  * TODO 
  * Using the Balanced Tree structure to store the pair set
  * thus making the retrival of min pair more efficiently
- * 
+ V* 
  * Shantanu Dutt. "New Faster Kernighan-Lin-Type Graph-Partitioning Algorithms".
  * ICCAD 1993
  */
 void partition(Graph *G, Vertex *a[], Vertex *b[]){
-	int INT_MIN = (int)(~0) << (sizeof(int) * 8 - 1), V = G->V  ;
+	int 
+	INT_MIN = (int)(~0) << (sizeof(int) * 8 - 1), V = G->V ,
+	INT_MAX = ~INT_MIN ;
 
 	/*
 	 * XXX 
@@ -86,6 +88,8 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	 * and will cause stack overflow.
 	 */
 	int
+	*counting_a = (int *)calloc( MAX_DEGREE * 2 + 1, sizeof *counting_a ), 
+	*counting_b = (int *)calloc( MAX_DEGREE * 2 + 1, sizeof *counting_b ), 
 	*d = (int *)calloc(V + 1, sizeof *d ), //d[V + 1] 
 	(*cost)[V + 1] = (int (*)[V + 1])calloc(V + 1, sizeof *cost),//cost[V + 1][V + 1], 
 	*gsum = (int *)calloc(V / 2 + 1, sizeof *gsum), //gsum[V / 2 + 1], 
@@ -93,10 +97,16 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	*locked = (int *)calloc(V + 1, sizeof *locked), //locked[V + 1] ,
 	i, j, k, maxk, maxgain, passes = 0, cumulative_gain = 0 ;
 	char *block = (char *)calloc(V + 1, sizeof *block) ; //block[V + 1] ;
-	Vertex *v1, *v2 ;
+	Vertex *v1, *v2, 
+	**sorted_a = (Vertex **)calloc( V / 2, sizeof *sorted_a),
+	**sorted_b = (Vertex **)calloc(V - V / 2, sizeof *sorted_b);
 
 	mainloop:
 	//Initialization
+	memset(counting_a, 0, (MAX_DEGREE * 2 + 1) * sizeof *counting_a);
+	memset(counting_b, 0, (MAX_DEGREE * 2 + 1) * sizeof *counting_b);
+	memset(sorted_a, 0, (V / 2) * sizeof *sorted_a);
+	memset(sorted_b, 0, (V - V / 2) * sizeof *sorted_b) ;
 	memset(d, 0, (V + 1) * sizeof *d)  ;
 	memset(cost, 0, (V + 1) * sizeof *cost) ;
 	memset(gsum , 0, (V / 2 + 1) * sizeof *gsum ) ;
@@ -117,9 +127,10 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	}
 
 	//Compute the D value
+	int min_d_a = 0, max_d_a = MAX_DEGREE + MAX_DEGREE ;
+	int min_d_b = 0, max_d_b = MAX_DEGREE + MAX_DEGREE ;
 	for (i = 0; i < V / 2; i++){
 		v1 = a[i];
-		v2 = b[i] ;
 		for(j = 0; j < v1->degree; j++){
 			if(block[ v1->list[j][0] ] == block[ v1->label ]){
 				d[v1->label] -= v1->list[j][1] ;
@@ -128,6 +139,12 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 			}
 			cost[ v1->label ][ v1->list[j][0] ] = v1->list[j][1] ;
 		}	
+		counting_a[ MAX_DEGREE + d[v1->label] ] += 1;
+		min_d_a = min_d_a > MAX_DEGREE + d[v1->label] ? MAX_DEGREE + d[v1->label] : min_d_a ;
+		max_d_a = max_d_a < MAX_DEGREE + d[v1->label] ? MAX_DEGREE + d[v1->label] : max_d_a ;
+	}	
+	for(i = 0; i < V - V / 2 ; i++){
+		v2 = b[i] ;
 		for(j = 0; j < v2->degree; j++){
 			if(block[ v2->list[j][0] ] == block[v2->label ]){
 				d[v2->label] -= v2->list[j][1] ;
@@ -136,28 +153,68 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 			}
 			cost[ v2->label ][ v2->list[j][0] ] = v2->list[j][1] ;
 		}
-	}	
-
-	if( V - V / 2  != V / 2) {
-		v2 = b[V - V / 2 - 1] ;
-		for(j = 0; j < v2->degree; j++){
-			if(block[ v2->list[j][0] ] == block[v2->label ]){
-				d[v2->label] -= v2->list[j][1] ;
-			}else{
-				d[v2->label] += v2->list[j][1] ;
-			}
-			cost[ v2->label ][ v2->list[j][0] ] = v2->list[j][1] ;
+		counting_b[ MAX_DEGREE + d[v2->label] ] += 1;
+		min_d_b = min_d_b > MAX_DEGREE + d[v1->label] ? MAX_DEGREE + d[v1->label] : min_d_b ;
+		max_d_b = max_d_b < MAX_DEGREE + d[v1->label] ? MAX_DEGREE + d[v1->label] : max_d_b ;
+	}
+	/* counting sorting by D */
+	int iter ;
+	int sum_d_a[ max_d_a - min_d_a + 1]  ;
+	memset(sum_d_a, 0, (max_d_a - min_d_a + 1) * sizeof (int)) ;
+	for(iter = min_d_a; iter <= max_d_a; iter ++){
+		if( iter > min_d_a ){
+			sum_d_a[ iter - min_d_a ] = sum_d_a[ iter - 1 - min_d_a ]  + counting_a[ iter - 1 ];
+		}else{
+			sum_d_a[ min_d_a + iter ] = 0;
 		}
 	}
+	int sum_d_b[ max_d_b - min_d_b + 1] ;
+	memset(sum_d_b, 0, (max_d_b - min_d_b + 1) * sizeof (int)) ;
+	for(iter = min_d_b; iter <= max_d_b; iter ++){
+		if( iter > min_d_b ){
+			sum_d_b[ iter - min_d_b ] = sum_d_b[ iter - 1 - min_d_b ]  + counting_b[ iter - 1 ];
+		}else{
+			sum_d_b[ min_d_b + iter ] = 0;
+		}
+	}
+	for(iter = 0 ; iter < V / 2; iter ++){
+		Vertex *v_a  =  a[ iter ] ;
+		int d_MAX_DEGREE_centered = MAX_DEGREE + d[ v_a->label] ;
+		counting_a[ d_MAX_DEGREE_centered  ] -= 1;
+		int index = counting_a[ d_MAX_DEGREE_centered  ] ;
+		sorted_a[ index + sum_d_a[ d_MAX_DEGREE_centered  - min_d_a ] ] = v_a ; 
+	}
+	
+	for(iter = 0 ; iter <V - V / 2; iter ++){
+		Vertex *v_b  =  b[ iter ] ;
+		int d_MAX_DEGREE_centered = MAX_DEGREE + d[ v_b->label] ;
+		counting_b[ d_MAX_DEGREE_centered  ] -= 1;
+		int index = counting_b[ d_MAX_DEGREE_centered  ] ;
+		sorted_b[ index + sum_d_b[ d_MAX_DEGREE_centered  - min_d_b ] ] = v_b ;
+	}
+	memcpy(a, sorted_a, (V / 2) * sizeof *sorted_a) ;
+	memcpy(b, sorted_b, (V - V / 2) * sizeof *sorted_b) ;
+/*
+	for(iter = 0; iter < V / 2; iter ++){
+		printf("iter: %d, label: %d, d: %d\n", iter, b[iter]->label, d[ b[iter]->label ] ) ;
+	}
 
-	//Inner loop, get the max-gain exchange pair 
+	for(iter = 0; iter < V - V / 2; iter ++){
+		printf("iter: %d, label: %d, d: %d\n", iter, sorted_b[iter]->label, d[ sorted_b[iter]->label ] ) ;
+	}
+*/	
+	
+
+	/* Inner loop, get the max-gain exchange pair  */
+	
 	for (k = 1; k <= V / 2; k++){
 		int to_be_locked[2], to_be_exchanged[2] ;
-		for(i = 0; i < V / 2 ; i++){
-			int a_i_label = a[i]->label ;
+		for(i = V / 2 - 1; i >= 0 ; i--){
+			int a_i_label, b_j_label;
+			a_i_label = a[i]->label ;
 			if (!locked[ a_i_label ]) {
-				for(j = 0; j < V - V / 2  ; j++){
-					int b_j_label = b[j]->label ;
+				for(j = V - V / 2 - 1; j >= 0  ; j--){
+					b_j_label = b[j]->label ;
 					if(!locked[ b_j_label ]){
 						int gain = d[ a_i_label ] + d[ b_j_label ] - 2 * cost[ a_i_label ][ b_j_label ] ;
 						if( gain >= maxgain ){ 
@@ -171,6 +228,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 					}
 				}
 			}
+			//if(maxgain >= d[ a_i_label] + d[b_j_label] ){break;}
 		}
 		locked[ to_be_locked[0] ] = 1 ;
 		locked[ to_be_locked[1] ] = 1 ;
@@ -210,6 +268,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		printf("\npasses: %d, cumulative gain: %d \n", passes, cumulative_gain);
 		return ;
 	}else{
+		printf("pass: %d, gain: %d\n", passes, gsum[maxk ] ) ;
 		passes += 1 ;
 		cumulative_gain += gsum[maxk ] ;
 		for(i = 1; i <= maxk; i++){
