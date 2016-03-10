@@ -388,8 +388,8 @@ int main(int argc, char ** argv){
 			printf("%d ", b[i]->label) ;
 		}
 		printf("\ncut size: %d \n", cut(G, a, b, stdout)) ;
-		free(a) ;
-		free(b) ;
+		free(a) ; free(sorted_a); free( counting_a );
+		free(b) ; free(sorted_b); free( counting_b );
 		free_graph (G);
 		free(line);
 		fclose(input) ;
