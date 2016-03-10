@@ -271,6 +271,8 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		free(ex);
 		free(block) ;
 		free(locked);
+		free(sorted_a); free( counting_a );
+		free(sorted_b); free( counting_b );
 		printf("\npasses: %d, cumulative gain: %d \n", passes, cumulative_gain);
 		return ;
 	}else{
@@ -388,8 +390,8 @@ int main(int argc, char ** argv){
 			printf("%d ", b[i]->label) ;
 		}
 		printf("\ncut size: %d \n", cut(G, a, b, stdout)) ;
-		free(a) ; free(sorted_a); free( counting_a );
-		free(b) ; free(sorted_b); free( counting_b );
+		free(a) ; 
+		free(b) ; 
 		free_graph (G);
 		free(line);
 		fclose(input) ;
