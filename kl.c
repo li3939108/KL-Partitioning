@@ -65,15 +65,14 @@ int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){
  * Simple implementation of the Kernighan-Lin algorithm 
  * to solve the Balanced Min-Cut problem.
  *
- * TODO
- * The time complexity is O(n^3)
- * which can be improved to O(n^2 log n)
- * using something like a heap
+ * UPDATE March 2016
+ * * improved time complexity using counting sort, should be O(|MAX_DEGREE| n ^ 2)
  * 
  * TODO 
  * Using the Balanced Tree structure to store the pair set
  * thus making the retrival of min pair more efficiently
- V* 
+ *  with complexity O(|E| log n)
+ * 
  * Shantanu Dutt. "New Faster Kernighan-Lin-Type Graph-Partitioning Algorithms".
  * ICCAD 1993
  */
@@ -103,10 +102,6 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 
 	mainloop:
 	//Initialization
-	memset(counting_a, 0, (MAX_DEGREE * 2 + 1) * sizeof *counting_a);
-	memset(counting_b, 0, (MAX_DEGREE * 2 + 1) * sizeof *counting_b);
-	memset(sorted_a, 0, (V / 2) * sizeof *sorted_a);
-	memset(sorted_b, 0, (V - V / 2) * sizeof *sorted_b) ;
 	memset(d, 0, (V + 1) * sizeof *d)  ;
 	memset(cost, 0, (V + 1) * sizeof *cost) ;
 	memset(gsum , 0, (V / 2 + 1) * sizeof *gsum ) ;
@@ -128,7 +123,6 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 
 	//Compute the D value
 	int min_d_a = 0, max_d_a = MAX_DEGREE + MAX_DEGREE ;
-	int min_d_b = 0, max_d_b = MAX_DEGREE + MAX_DEGREE ;
 	for (i = 0; i < V / 2; i++){
 		v1 = a[i];
 		for(j = 0; j < v1->degree; j++){
@@ -143,6 +137,8 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		min_d_a = min_d_a > MAX_DEGREE + d[v1->label] ? MAX_DEGREE + d[v1->label] : min_d_a ;
 		max_d_a = max_d_a < MAX_DEGREE + d[v1->label] ? MAX_DEGREE + d[v1->label] : max_d_a ;
 	}	
+
+	int min_d_b = 0, max_d_b = MAX_DEGREE + MAX_DEGREE ;
 	for(i = 0; i < V - V / 2 ; i++){
 		v2 = b[i] ;
 		for(j = 0; j < v2->degree; j++){
@@ -157,24 +153,25 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		min_d_b = min_d_b > MAX_DEGREE + d[v1->label] ? MAX_DEGREE + d[v1->label] : min_d_b ;
 		max_d_b = max_d_b < MAX_DEGREE + d[v1->label] ? MAX_DEGREE + d[v1->label] : max_d_b ;
 	}
+
+
+
 	/* counting sorting by D */
 	int iter ;
 	int sum_d_a[ max_d_a - min_d_a + 1]  ;
-	memset(sum_d_a, 0, (max_d_a - min_d_a + 1) * sizeof (int)) ;
 	for(iter = min_d_a; iter <= max_d_a; iter ++){
 		if( iter > min_d_a ){
 			sum_d_a[ iter - min_d_a ] = sum_d_a[ iter - 1 - min_d_a ]  + counting_a[ iter - 1 ];
 		}else{
-			sum_d_a[ min_d_a + iter ] = 0;
+			sum_d_a[ iter - min_d_a ] = 0;
 		}
 	}
 	int sum_d_b[ max_d_b - min_d_b + 1] ;
-	memset(sum_d_b, 0, (max_d_b - min_d_b + 1) * sizeof (int)) ;
 	for(iter = min_d_b; iter <= max_d_b; iter ++){
 		if( iter > min_d_b ){
 			sum_d_b[ iter - min_d_b ] = sum_d_b[ iter - 1 - min_d_b ]  + counting_b[ iter - 1 ];
 		}else{
-			sum_d_b[ min_d_b + iter ] = 0;
+			sum_d_b[ iter - min_d_b ] = 0;
 		}
 	}
 	for(iter = 0 ; iter < V / 2; iter ++){
@@ -194,27 +191,26 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	}
 	memcpy(a, sorted_a, (V / 2) * sizeof *sorted_a) ;
 	memcpy(b, sorted_b, (V - V / 2) * sizeof *sorted_b) ;
-/*
-	for(iter = 0; iter < V / 2; iter ++){
-		printf("iter: %d, label: %d, d: %d\n", iter, b[iter]->label, d[ b[iter]->label ] ) ;
-	}
 
-	for(iter = 0; iter < V - V / 2; iter ++){
-		printf("iter: %d, label: %d, d: %d\n", iter, sorted_b[iter]->label, d[ sorted_b[iter]->label ] ) ;
-	}
-*/	
+
 	
 
 	/* Inner loop, get the max-gain exchange pair  */
-	
 	for (k = 1; k <= V / 2; k++){
 		int to_be_locked[2], to_be_exchanged[2] ;
-		for(i = V / 2 - 1; i >= 0 ; i--){
+		for(i =  V / 2 - 1; i >= 0 ; i--){
 			int a_i_label, b_j_label;
 			a_i_label = a[i]->label ;
+			if(d[ a_i_label ] + d[ b[ V - V / 2 - 1 ]->label ] < maxgain ){
+				break;
+			}
 			if (!locked[ a_i_label ]) {
 				for(j = V - V / 2 - 1; j >= 0  ; j--){
 					b_j_label = b[j]->label ;
+					if(d[ a_i_label ] + d[ b_j_label ] < maxgain ){
+						break;
+					}
+					
 					if(!locked[ b_j_label ]){
 						int gain = d[ a_i_label ] + d[ b_j_label ] - 2 * cost[ a_i_label ][ b_j_label ] ;
 						if( gain >= maxgain ){ 
@@ -228,8 +224,8 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 					}
 				}
 			}
-			//if(maxgain >= d[ a_i_label] + d[b_j_label] ){break;}
 		}
+		
 		locked[ to_be_locked[0] ] = 1 ;
 		locked[ to_be_locked[1] ] = 1 ;
 		ex[k][0] = to_be_exchanged[0] ;
