@@ -66,9 +66,16 @@ int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){
  * to solve the Balanced Min-Cut problem.
  *
  * UPDATE March 2016
- * * improved time complexity using counting sort, should be O(|MAX_DEGREE| n ^ 2)
+ * * improved time complexity using counting sort, should be about O(|MAX_DEGREE| + n ^ 2)
  * * The original paper "An efficient heuristic procedure for partitioning graphs"
- * * requires the use of sorting
+ * * requires the use of sorting, but assumes the use of comparison sorting
+ * * However, in many cases the max degree of nodes is a limited integer, 
+ * * using counting is much better choice.
+ *
+ * TODO
+ * using something like a set to store the nodes
+ * and remove locked nodes in the inner loop.
+ * I guess this should make some improvement but not too much
  * 
  * TODO 
  * Using the Balanced Tree structure to store the pair set
