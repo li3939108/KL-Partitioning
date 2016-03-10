@@ -292,7 +292,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
  * nodes not connected to any other nodes.
  *
  * ==SYNOPSIS
- *   $ kl klin
+ *   $ kl input
  */
 int main(int argc, char ** argv){
 	if(argc == 2){
