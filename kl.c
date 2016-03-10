@@ -305,10 +305,11 @@ int main(int argc, char ** argv){
 		Graph *G, *G2 ;
 		/*
 		 *Generate input by itself
- 		 */
+		 *
 		output = fopen(argv[1], "w") ;
 		input_gen(output, 6, 2000) ;
 		fclose(output) ;
+ 		 */
 
 		input = fopen(argv[1], "r");
 		if (input == NULL){
