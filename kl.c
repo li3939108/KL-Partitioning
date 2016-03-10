@@ -70,7 +70,7 @@ int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){
  * * The original paper "An efficient heuristic procedure for partitioning graphs"
  * * requires the use of sorting, but assumes the use of comparison sorting
  * * However, in many cases the max degree of nodes is a limited integer, 
- * * using counting is much better choice.
+ * * using counting sort is a much better choice.
  *
  * TODO
  * using something like a set to store the nodes
