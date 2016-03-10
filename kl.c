@@ -102,6 +102,8 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 
 	mainloop:
 	//Initialization
+	memset(counting_a, 0, (MAX_DEGREE * 2 + 1) * sizeof *counting_a);
+	memset(counting_b, 0, (MAX_DEGREE * 2 + 1) * sizeof *counting_b);
 	memset(d, 0, (V + 1) * sizeof *d)  ;
 	memset(cost, 0, (V + 1) * sizeof *cost) ;
 	memset(gsum , 0, (V / 2 + 1) * sizeof *gsum ) ;
@@ -302,11 +304,10 @@ int main(int argc, char ** argv){
 		Graph *G, *G2 ;
 		/*
 		 *Generate input by itself
- 		 *
+ 		 */
 		output = fopen(argv[1], "w") ;
-		input_gen(output, 4, 1000) ;
+		input_gen(output, 6, 2000) ;
 		fclose(output) ;
-		*/
 
 		input = fopen(argv[1], "r");
 		if (input == NULL){
