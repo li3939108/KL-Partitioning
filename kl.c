@@ -67,12 +67,13 @@ int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){
  *
  * UPDATE March 2016
  * * improved time complexity using counting sort, should be O(|MAX_DEGREE| n ^ 2)
+ * * The original paper "An efficient heuristic procedure for partitioning graphs"
+ * * requires the use of sorting
  * 
  * TODO 
  * Using the Balanced Tree structure to store the pair set
  * thus making the retrival of min pair more efficiently
- *  with complexity O(|E| log n)
- * 
+ * with complexity O(|E| log n)
  * Shantanu Dutt. "New Faster Kernighan-Lin-Type Graph-Partitioning Algorithms".
  * ICCAD 1993
  */
