@@ -208,7 +208,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	memcpy(b, sorted_b, (V - V / 2) * sizeof *sorted_b) ;
 
 
-
+	/* get the index of each label */
 	for(i = 0; i < V; i++){
 		if(i < V / 2){
 			label2index[ a[i]->label ] = i ;
@@ -439,6 +439,7 @@ int main(int argc, char ** argv){
 		G = new_graph(0, NULL);
 		G->V = V ;
 		G->E = E ;
+		free_vertex(G->adj_list[0] );
 		free(G->edge_list);
 		free(G->adj_list);
 		free(G->edge_pair) ;
