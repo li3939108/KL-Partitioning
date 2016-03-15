@@ -210,6 +210,8 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	memcpy(a, sorted_a, (V / 2) * sizeof *sorted_a) ;
 	memcpy(b, sorted_b, (V - V / 2) * sizeof *sorted_b) ;
 
+
+
 	for(i = 0; i < V; i++){
 		if(i < V / 2){
 			label2index[ a[i]->label ] = i ;
@@ -225,14 +227,14 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	for (k = 1; k <= V / 2; k++){
 		int to_be_locked[2], to_be_exchanged[2] ;
 		for(i =  V / 2 - 1; i >= 0 ; i--){
-			int a_i_label, b_j_label;
+			int a_i_label;
 			a_i_label = a[i]->label ;
 			if(d[ a_i_label ] + d[ b[ V - V / 2 - 1 ]->label ] < maxgain ){
 				break;
 			}
 			if (!locked[ a_i_label ]) {
 				for(j = V - V / 2 - 1; j >= 0  ; j--){
-					b_j_label = b[j]->label ;
+					int b_j_label = b[j]->label ;
 					if(d[ a_i_label ] + d[ b_j_label ] < maxgain ){
 						break;
 					}
@@ -256,6 +258,8 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		locked[ to_be_locked[1] ] = 1 ;
 		ex[k][0] = a[to_be_exchanged[0] ]->label ;
 		ex[k][1] = b[to_be_exchanged[1] ]->label ;		
+
+
 		/* update D values */
 		v1 = a[ to_be_exchanged[0] ] ;
 		v2 = b[ to_be_exchanged[1] ] ;
@@ -278,7 +282,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 					d[ label ] -= 2 * cost[ v1->label ][ label ] ;
 					int j = label2index[ label ]  - V / 2;
 					/* bubble sort for the updated vertices */
-					while(j - 1 >= 0 && d[ b[j - 1]->label] < d[ b[j]->label ] ){
+					while(j - 1 >= 0 && d[  d[ b[j]->label ] < b[j - 1]->label]  ){
 						Vertex *temp = b[j - 1] ;
 						b[j - 1] = b[j] ;
 						b[j] = temp ;
@@ -309,7 +313,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 					d[ label ] -= 2 * cost[ v2->label ][ label ] ;
 					int j = label2index[ label ] ;
 					/* bubble sort for the updated vertices */
-					while(j - 1 >= 0 && d[ a[j - 1]->label] < d[ a[j]->label ] ){
+					while(j - 1 >= 0 && d[  d[ a[j]->label ] < a[j - 1]->label] ){
 						Vertex *temp = a[j - 1] ;
 						a[j - 1] = a[j] ;
 						a[j] = temp ;
@@ -320,7 +324,6 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 				}
 			}
 		}
-
 
 
 
@@ -356,6 +359,8 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 			int tint = label2index[ ex[i][0] ] ;
 			label2index[ ex[i][0] ] = label2index[ ex[i][1] ] ;
 			label2index[ ex[i][1] ] = tint ;
+			block[ ex[i][0] ] = 'b' ;
+			block[ ex[i][1] ] = 'a' ;
 		}
 		goto mainloop ;
 	}
