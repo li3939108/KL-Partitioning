@@ -133,7 +133,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		block[ b[V - V / 2 - 1]->label ] = 'b' ;
 	}
 
-	//Compute the D value
+	/* Compute the D value */
 	int max_d_a = 0, min_d_a = MAX_DEGREE + MAX_DEGREE ;
 	for (i = 0; i < V / 2; i++){
 		v1 = a[i];
@@ -169,7 +169,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 
 	
 
-	/* counting sorting by D */
+	/* counting sort by D */
 	int iter ;
 	int sum_d_a[ max_d_a - min_d_a + 1]  ;
 	memset(sum_d_a, 0,  (max_d_a - min_d_a + 1) * sizeof (int) );
@@ -239,7 +239,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 					if(!locked[ b_j_label ]){
 						int gain = d[ a_i_label ] + d[ b_j_label ] - 2 * cost[ a_i_label ][ b_j_label ] ;
 						if( gain >= maxgain ){ 
-							// Either >= or > is OK.
+							/* Either >= or > is OK. */
 							maxgain = gain ;
 							to_be_locked[0] = a_i_label ;
 							to_be_exchanged[0] = i ;
