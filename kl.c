@@ -390,11 +390,11 @@ int main(int argc, char ** argv){
 		/*
 		 *Generate input by itself
 		 *
- 		 */
 		srand(time(NULL));
 		output = fopen(argv[1], "w") ;
 		input_gen(output, 8, 5000) ;
 		fclose(output) ;
+ 		 */
 
 		input = fopen(argv[1], "r");
 		if (input == NULL){
