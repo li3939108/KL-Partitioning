@@ -171,9 +171,6 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 
 	/* counting sorting by D */
 	int iter ;
-	for(iter = min_d_a; iter <= max_d_a; iter ++){
-		printf(" counting_a[%d]: %d\n", iter-MAX_DEGREE ,  counting_a[iter] );
-	}
 	int sum_d_a[ max_d_a - min_d_a + 1]  ;
 	memset(sum_d_a, 0,  (max_d_a - min_d_a + 1) * sizeof (int) );
 	for(iter = min_d_a; iter <= max_d_a; iter ++){
@@ -393,11 +390,11 @@ int main(int argc, char ** argv){
 		/*
 		 *Generate input by itself
 		 *
- 		 */
 		srand(time(NULL));
 		output = fopen(argv[1], "w") ;
 		input_gen(output, 4, 1000) ;
 		fclose(output) ;
+ 		 */
 
 		input = fopen(argv[1], "r");
 		if (input == NULL){
