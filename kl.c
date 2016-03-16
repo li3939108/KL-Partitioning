@@ -38,9 +38,6 @@ int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){
 		block[ b[i]->label ] = 'b' ;
 	}	
 	block[ b[G->V - G->V / 2 - 1]->label ] = 'b' ;
-	if(output != NULL){
-		fprintf(output, "\nCutset: \n") ;
-	}
 
 	for(i = 0; i < G->V / 2; i++){
 		v1 = a[i] ;
@@ -50,7 +47,7 @@ int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){
 			if(block[ v1->label ] != block[ v1->list[j][0] ]){
 				total_cost +=  v1->list[j][1] ;
 				if(output != NULL){
-					fprintf(output, "%d -- %d\n", v1->label, v1->list[j][0]);
+					fprintf(output, "%d\t--\t%d\n", v1->label, v1->list[j][0]);
 				}
 			}
 		}
@@ -65,19 +62,19 @@ int cut(Graph *G, Vertex *a[], Vertex *b[], FILE *output){
  * Simple implementation of the Kernighan-Lin algorithm 
  * to solve the Balanced Min-Cut problem.
  *
- * UPDATE March 2016
+ * * UPDATE March 2016
  * * Substantial improved time complexity using counting sort, should be about O(|MAX_DEGREE| + n ^ 2)
  * *
  * * The original paper "An efficient heuristic procedure for partitioning graphs"
  * * requires the use of sorting, but assumes the use of comparison sorting
  * * However, in many cases the max degree of nodes is a limited integer, 
  * * using counting sort is a much better choice.
+ * *
+ * * TODO
+ * * using something like a set to store the nodes
+ * * and remove locked nodes in the inner loop.
+ * * I guess this should make some improvement but not too much
  *
- * TODO
- * using something like a set to store the nodes
- * and remove locked nodes in the inner loop.
- * I guess this should make some improvement but not too much
- * 
  * TODO 
  * Using the Balanced Tree structure to store the pair set
  * thus making the retrival of min pair more efficiently
@@ -111,7 +108,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 	**sorted_b = (Vertex **)calloc(V - V / 2, sizeof *sorted_b);
 
 	mainloop:
-	//Initialization
+	/* Initialization */
 	memset(counting_a, 0, (MAX_DEGREE * 2 + 1) * sizeof *counting_a);
 	memset(counting_b, 0, (MAX_DEGREE * 2 + 1) * sizeof *counting_b);
 	memset(d, 0, (V + 1) * sizeof *d)  ;
@@ -340,10 +337,11 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 		free(sorted_a); free( counting_a );
 		free(sorted_b); free( counting_b );
 		free(label2index);
-		printf("\npasses: %d, cumulative gain: %d \n", passes, cumulative_gain);
+		printf("\n#Total passes:\t%d\tCumulative gain:\t%d\n\
+-----------------------------------------\n", passes, cumulative_gain);
 		return ;
 	}else{
-		printf("pass: %d, gain: %d\n", passes, gsum[maxk ] ) ;
+		printf("Pass:\t%d\tGain:\t%d\n", passes, gsum[maxk ] ) ;
 		passes += 1 ;
 		cumulative_gain += gsum[maxk ] ;
 
@@ -455,17 +453,8 @@ int main(int argc, char ** argv){
 		for(i = 0; i < V - V / 2; i++){
 			b[i] = G->adj_list[V / 2 + i + 1] ;
 		}
-		printf("Initial cut size: %d \n", cut(G, a, b, NULL)) ;
+		printf("Initial cut size:\t%d \n", cut(G, a, b, NULL)) ;
 		partition(G, a, b);
-		printf("partitioned \n") ;
-		printf("a:\n");
-		for(i = 0; i < V / 2; i++){
-			printf("%d ", a[i]->label) ;
-		}
-		printf("\nb:\n");
-		for(i = 0; i < V - V / 2; i++){
-			printf("%d ", b[i]->label) ;
-		}
 		printf("\ncut size: %d \n", cut(G, a, b, stdout)) ;
 		free(a) ; 
 		free(b) ; 
