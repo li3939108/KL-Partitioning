@@ -1,7 +1,8 @@
 # KL-Partitioning
 Min-cut partitioning a graph using kernighan Lin algorithm
 
-KL algorithm is an old heuristic algorithm for partitioning a graph into two parts, with as small as possible number of cuts between the two parts.
+KL algorithm is an old heuristic algorithm for partitioning a graph into two parts, 
+with equal number of vertices in each part, and as small as possible number of cuts between the two parts.
 
 Since it is a heuristic algorithm, the minimality is not guaranteed.
 
