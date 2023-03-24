@@ -276,7 +276,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 					d[ label ] -= 2 * cost[ v1->label ][ label ] ;
 					int j = label2index[ label ]  - V / 2;
 					/* bubble sort for the updated vertices */
-					while(j - 1 >= 0 && d[  d[ b[j]->label ] < b[j - 1]->label]  ){
+					while(j - 1 >= 0 &&   d[ b[j]->label ] < d[ b[j - 1]->label]  ){
 						Vertex *temp = b[j - 1] ;
 						b[j - 1] = b[j] ;
 						b[j] = temp ;
@@ -307,7 +307,7 @@ void partition(Graph *G, Vertex *a[], Vertex *b[]){
 					d[ label ] -= 2 * cost[ v2->label ][ label ] ;
 					int j = label2index[ label ] ;
 					/* bubble sort for the updated vertices */
-					while(j - 1 >= 0 && d[  d[ a[j]->label ] < a[j - 1]->label] ){
+					while(j - 1 >= 0 && d[   a[j]->label ] < d[a[j - 1]->label] ){
 						Vertex *temp = a[j - 1] ;
 						a[j - 1] = a[j] ;
 						a[j] = temp ;
